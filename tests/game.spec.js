@@ -17,7 +17,7 @@ test.describe('Block Blaster Full Feature Verification', () => {
 
     const blastWord = page.locator('.home-hero .blast-word');
     await expect(blastWord).toBeVisible();
-    await expect(blastWord).toHaveText('BLAST');
+    await expect(blastWord).toHaveText('BLASTER');
 
     // Check Crown icon on O
     const crown = page.locator('.home-hero .crown-icon');
