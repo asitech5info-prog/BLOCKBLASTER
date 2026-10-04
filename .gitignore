@@ -1,0 +1,19 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+.playwright/
+.vscode/
+.idea/
+
+# Android build outputs
+android/.gradle/
+android/app/build/
+android/build/
+android/captures/
+*.apk
+*.aab
+
+# OS files
+.DS_Store
+Thumbs.db

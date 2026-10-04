@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Block Blaster</string>
+    <string name="title_activity_main">Block Blaster</string>
+    <string name="package_name">com.blockblaster.game</string>
+    <string name="custom_url_scheme">com.blockblaster.game</string>
+</resources>

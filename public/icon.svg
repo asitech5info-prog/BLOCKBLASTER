@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="cyan-g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00d2ff" />
+      <stop offset="100%" stop-color="#0072ff" />
+    </linearGradient>
+    <linearGradient id="gold-g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f9ca24" />
+      <stop offset="100%" stop-color="#f0932b" />
+    </linearGradient>
+    <linearGradient id="red-g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff4757" />
+      <stop offset="100%" stop-color="#ff6b81" />
+    </linearGradient>
+    <linearGradient id="purple-g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e056fd" />
+      <stop offset="100%" stop-color="#6807f9" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="110" fill="url(#bg)" stroke="rgba(255,255,255,0.12)" stroke-width="6"/>
+
+  <!-- 4 Jewels in a dynamic grid layout -->
+  <!-- Top Left: Cyan -->
+  <rect x="106" y="106" width="135" height="135" rx="24" fill="url(#cyan-g)" filter="url(#glow)"/>
+  <rect x="114" y="114" width="119" height="45" rx="16" fill="rgba(255,255,255,0.38)"/>
+
+  <!-- Top Right: Gold -->
+  <rect x="271" y="106" width="135" height="135" rx="24" fill="url(#gold-g)" filter="url(#glow)"/>
+  <rect x="279" y="114" width="119" height="45" rx="16" fill="rgba(255,255,255,0.38)"/>
+
+  <!-- Bottom Left: Red -->
+  <rect x="106" y="271" width="135" height="135" rx="24" fill="url(#red-g)" filter="url(#glow)"/>
+  <rect x="114" y="279" width="119" height="45" rx="16" fill="rgba(255,255,255,0.38)"/>
+
+  <!-- Bottom Right: Purple -->
+  <rect x="271" y="271" width="135" height="135" rx="24" fill="url(#purple-g)" filter="url(#glow)"/>
+  <rect x="279" y="279" width="119" height="45" rx="16" fill="rgba(255,255,255,0.38)"/>
+</svg>

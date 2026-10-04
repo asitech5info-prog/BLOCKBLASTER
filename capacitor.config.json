@@ -1,0 +1,12 @@
+{
+  "appId": "com.blockblaster.game",
+  "appName": "Block Blaster",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
