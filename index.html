@@ -5,95 +5,276 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="theme-color" content="#0d1117" />
-    <meta name="description" content="Block Blaster - The ultimate block puzzle blast game for Web, iOS, and Android!" />
-    <title>Block Blaster - Block Puzzle Game</title>
+    <meta name="theme-color" content="#0066f5" />
+    <meta name="description" content="Block Blaster - Block Puzzle Game with Classic & Adventure Modes" />
+    <title>Block Blaster - Adventure Master</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700;800&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/src/style.css" />
   </head>
-  <body>
+  <body class="theme-blue">
     <div id="app" class="game-wrapper">
-      <!-- Background Ambient Glows -->
-      <div class="glow-orb orb-1"></div>
-      <div class="glow-orb orb-2"></div>
 
-      <!-- Game Header -->
-      <header class="game-header">
-        <div class="logo-title">
-          <span class="logo-text">BLOCK<span class="highlight">BLASTER</span></span>
+      <!-- ================= 1. LOADING SCREEN ================= -->
+      <section id="screen-loading" class="screen screen-loading active">
+        <div class="splash-content">
+          <!-- 3D Bubble Logo -->
+          <div class="logo-3d-container">
+            <div class="bubble-word block-word">
+              <span class="bubble-letter letter-b">B</span>
+              <span class="bubble-letter letter-l">L</span>
+              <span class="bubble-letter letter-o">
+                <span class="crown-icon">👑</span>
+                O
+              </span>
+              <span class="bubble-letter letter-c">C</span>
+              <span class="bubble-letter letter-k">K</span>
+            </div>
+            <div class="bubble-word blast-word">BLAST</div>
+            <div class="logo-subtitle">ADVENTURE MASTER</div>
+          </div>
+
+          <div class="loading-bar-wrapper">
+            <div class="loading-bar-track">
+              <div id="loading-bar-fill" class="loading-bar-fill"></div>
+            </div>
+            <span id="loading-text" class="loading-text">Loading...</span>
+          </div>
         </div>
+      </section>
 
-        <div class="header-actions">
-          <button id="sound-btn" class="icon-btn" aria-label="Toggle Sound" title="Sound On/Off">
-            <span class="icon sound-icon">🔊</span>
+      <!-- ================= 2. HOMEPAGE SCREEN ================= -->
+      <section id="screen-home" class="screen screen-home hidden">
+        <!-- Top Right Settings Gear -->
+        <header class="home-topbar">
+          <button id="home-settings-btn" class="gear-btn" aria-label="Settings">
+            <span class="gear-icon">⚙️</span>
           </button>
-          <button id="theme-btn" class="icon-btn" aria-label="Restart Game" title="Restart">
-            <span class="icon">🔄</span>
+        </header>
+
+        <!-- Main Logo Centerpiece -->
+        <div class="home-hero">
+          <div class="logo-3d-container">
+            <div class="bubble-word block-word">
+              <span class="bubble-letter letter-b">B</span>
+              <span class="bubble-letter letter-l">L</span>
+              <span class="bubble-letter letter-o">
+                <span class="crown-icon">👑</span>
+                O
+              </span>
+              <span class="bubble-letter letter-c">C</span>
+              <span class="bubble-letter letter-k">K</span>
+            </div>
+            <div class="bubble-word blast-word">BLAST</div>
+            <div class="logo-subtitle">ADVENTURE MASTER</div>
+          </div>
+
+          <!-- Daily Streak Pill -->
+          <div class="daily-streak-pill">
+            <div class="streak-trophy-badge">🏆 WIN</div>
+            <span class="streak-label">Daily Streak</span>
+            <span id="daily-streak-num" class="streak-num">1</span>
+          </div>
+        </div>
+
+        <!-- Mode Buttons (Adventure & Classic) -->
+        <div class="home-menu-actions">
+          <button id="btn-mode-adventure" class="menu-pill-btn btn-adventure" data-testid="btn-adventure">
+            <span class="pill-icon">📍</span>
+            <span class="pill-text">Adventure</span>
+          </button>
+
+          <button id="btn-mode-classic" class="menu-pill-btn btn-classic" data-testid="btn-classic">
+            <span class="pill-icon">♾️</span>
+            <span class="pill-text">Classic</span>
           </button>
         </div>
-      </header>
+      </section>
 
-      <!-- Scoreboard Bar -->
-      <div class="score-container">
-        <div class="score-card current-score-card">
-          <span class="score-label">SCORE</span>
-          <span id="current-score" class="score-val" data-testid="current-score">0</span>
+      <!-- ================= 3. ADVENTURE MAP SCREEN ================= -->
+      <section id="screen-adventure-map" class="screen screen-adventure-map hidden">
+        <header class="map-topbar">
+          <button id="map-back-btn" class="back-nav-btn" aria-label="Back">
+            <span class="nav-arrow">‹</span>
+          </button>
+          <h1 class="map-title">Adventure</h1>
+          <div class="topbar-spacer"></div>
+        </header>
+
+        <!-- Trophy Carousel Header -->
+        <div class="trophy-banner-card">
+          <div id="trophy-icon" class="trophy-big-icon">🏆</div>
+          <div class="trophy-info">
+            <h2 id="trophy-name" class="trophy-title">Bronze Novice Trophy</h2>
+            <p class="trophy-desc">Take part in the Adventure and win the trophy.</p>
+          </div>
         </div>
 
-        <div class="combo-badge-wrapper">
+        <!-- 5 Trophies Tabs (100 Levels Each) -->
+        <div class="trophy-tabs" id="trophy-tabs-container">
+          <button class="trophy-tab active" data-trophy="0">Trophy 1<span class="tab-sub">1-100</span></button>
+          <button class="trophy-tab" data-trophy="1">Trophy 2<span class="tab-sub">101-200</span></button>
+          <button class="trophy-tab" data-trophy="2">Trophy 3<span class="tab-sub">201-300</span></button>
+          <button class="trophy-tab" data-trophy="3">Trophy 4<span class="tab-sub">301-400</span></button>
+          <button class="trophy-tab" data-trophy="4">Trophy 5<span class="tab-sub">401-500</span></button>
+        </div>
+
+        <!-- Silhouette Pyramid Level Grid (1 to 100) -->
+        <div class="map-levels-viewport">
+          <div id="levels-pyramid-grid" class="levels-pyramid-grid">
+            <!-- 100 level cells generated dynamically -->
+          </div>
+        </div>
+
+        <!-- Bottom Play Level Button -->
+        <div class="map-bottom-bar">
+          <button id="map-play-level-btn" class="green-pill-btn" data-testid="map-play-level-btn">
+            Level 1
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= 4. GAMEPLAY SCREEN (Classic & Adventure) ================= -->
+      <section id="screen-gameplay" class="screen screen-gameplay hidden">
+        <!-- Top HUD -->
+        <header class="gameplay-header">
+          <!-- Back button or mode tag -->
+          <button id="game-back-btn" class="icon-btn-game" aria-label="Exit Game">
+            <span>‹</span>
+          </button>
+
+          <!-- Adventure Level Objective / Diamonds HUD -->
+          <div id="adventure-objective-hud" class="objective-hud hidden">
+            <div class="objective-badge">
+              <span id="objective-icon" class="obj-icon">💎</span>
+              <span id="objective-text" class="obj-text">0 / 6</span>
+            </div>
+            <div class="objective-prog-track">
+              <div id="objective-prog-fill" class="objective-prog-fill"></div>
+            </div>
+          </div>
+
+          <!-- Classic Mode Crown Best Score -->
+          <div id="classic-best-hud" class="classic-best-hud">
+            <span class="crown-small">👑</span>
+            <span id="best-score-display" class="best-score-text">0</span>
+          </div>
+
+          <!-- In-Game Settings Button -->
+          <button id="game-settings-btn" class="icon-btn-game" aria-label="Settings">
+            <span>⚙️</span>
+          </button>
+        </header>
+
+        <!-- Big Score Number -->
+        <div class="score-hero">
+          <div id="game-score-display" class="big-score-num">0</div>
+          <!-- Combo Streak Badge -->
           <div id="combo-badge" class="combo-badge hidden">
             <span class="combo-fire">🔥</span>
             <span id="combo-text">COMBO x2</span>
           </div>
         </div>
 
-        <div class="score-card best-score-card">
-          <span class="score-label">BEST 👑</span>
-          <span id="best-score" class="score-val" data-testid="best-score">0</span>
+        <!-- All Clear / Theme Changed Announcement Banner -->
+        <div id="all-clear-banner" class="all-clear-banner hidden">
+          🌟 PERFECT CLEAR! THEME CHANGED! 🌟
+        </div>
+
+        <!-- 8x8 Board Container -->
+        <main class="board-container">
+          <div id="game-board" class="board" data-testid="game-board">
+            <!-- 64 cells generated by JS -->
+          </div>
+
+          <!-- Floating Points Effect Container -->
+          <div id="floater-container" class="floater-layer"></div>
+        </main>
+
+        <!-- Bottom Tray for 3 Shapes -->
+        <footer class="tray-container">
+          <div id="shapes-tray" class="shapes-tray" data-testid="shapes-tray">
+            <div class="tray-slot" data-slot="0"></div>
+            <div class="tray-slot" data-slot="1"></div>
+            <div class="tray-slot" data-slot="2"></div>
+          </div>
+        </footer>
+      </section>
+
+      <!-- ================= 5. GAME OVER SCREEN (Image 4) ================= -->
+      <section id="screen-game-over" class="screen screen-game-over hidden" data-testid="screen-game-over">
+        <div class="game-over-modal-body">
+          <h1 class="game-over-title">Game Over</h1>
+
+          <div class="death-score-block">
+            <span class="death-score-label">Score</span>
+            <div id="death-final-score" class="death-score-val">0</div>
+          </div>
+
+          <div class="death-score-block best-block">
+            <span class="death-score-label best-label">Best Score</span>
+            <div id="death-best-score" class="death-best-val">0</div>
+          </div>
+
+          <div id="death-new-record" class="death-new-record hidden">
+            🎉 NEW HIGH SCORE! 🎉
+          </div>
+
+          <div class="death-actions">
+            <div class="play-btn-wrapper">
+              <span class="compliment-badge">Good!</span>
+              <button id="death-restart-btn" class="death-play-btn" data-testid="death-restart-btn">
+                <span class="triangle-play">▶</span>
+              </button>
+            </div>
+
+            <button id="death-home-btn" class="death-sub-btn">
+              <span>🏠 Home</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 6. LEVEL COMPLETE MODAL (Adventure) ================= -->
+      <div id="level-win-modal" class="modal-overlay hidden">
+        <div class="modal-card win-card">
+          <div class="win-crown">👑</div>
+          <h2 class="win-title">LEVEL COMPLETE!</h2>
+          <div class="win-stars">⭐⭐⭐</div>
+          <p id="win-level-desc" class="win-desc">You unlocked the next level!</p>
+          <div class="win-buttons">
+            <button id="win-next-btn" class="green-pill-btn">Next Level ➔</button>
+            <button id="win-map-btn" class="secondary-pill-btn">Map</button>
+          </div>
         </div>
       </div>
 
-      <!-- Main Game Board (8x8) -->
-      <main class="board-container">
-        <div id="game-board" class="board" data-testid="game-board">
-          <!-- 64 cells generated by JS -->
-        </div>
-
-        <!-- Floating Points Effect Container -->
-        <div id="floater-container" class="floater-layer"></div>
-      </main>
-
-      <!-- Bottom Tray for 3 Shapes -->
-      <footer class="tray-container">
-        <div id="shapes-tray" class="shapes-tray" data-testid="shapes-tray">
-          <div class="tray-slot" data-slot="0"></div>
-          <div class="tray-slot" data-slot="1"></div>
-          <div class="tray-slot" data-slot="2"></div>
-        </div>
-      </footer>
-
-      <!-- Game Over Modal -->
-      <div id="game-over-modal" class="modal-overlay hidden" data-testid="game-over-modal">
-        <div class="modal-card">
-          <div class="modal-header">
-            <span class="game-over-emoji">💥</span>
-            <h2 class="modal-title">NO MORE MOVES!</h2>
+      <!-- ================= 7. SETTINGS MODAL (Image 2) ================= -->
+      <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-card settings-card">
+          <div class="settings-header">
+            <h2 class="settings-title">Settings</h2>
+            <button id="settings-close-btn" class="modal-close-btn">✕</button>
           </div>
-          <div class="modal-body">
-            <div class="final-score-box">
-              <span class="final-score-title">FINAL SCORE</span>
-              <span id="modal-final-score" class="final-score-num">0</span>
-            </div>
-            <div id="new-high-score-banner" class="new-high-score hidden">
-              🎉 NEW HIGH SCORE! 🎉
-            </div>
+
+          <div class="settings-grid">
+            <button id="settings-sound-btn" class="setting-toggle-btn active">
+              <span id="sound-icon-display" class="setting-icon">🔊</span>
+              <span class="setting-name">Sound</span>
+            </button>
+            <button id="settings-bgm-btn" class="setting-toggle-btn active">
+              <span id="bgm-icon-display" class="setting-icon">🎵</span>
+              <span class="setting-name">BGM</span>
+            </button>
           </div>
-          <div class="modal-footer">
-            <button id="modal-restart-btn" class="play-again-btn" data-testid="play-again-btn">
-              <span>PLAY AGAIN</span>
-              <span class="btn-arrow">➔</span>
+
+          <div class="settings-action-list">
+            <button id="settings-trophies-btn" class="green-pill-btn settings-action-btn">
+              <span>🏅 Medals & Trophies</span>
+            </button>
+            <button id="settings-theme-btn" class="secondary-pill-btn settings-action-btn">
+              <span>🎨 Switch Theme</span>
             </button>
           </div>
         </div>
