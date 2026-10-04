@@ -470,9 +470,11 @@ body {
 }
 
 .score-floater.combo-floater {
-  color: var(--accent-gold);
-  font-size: 1.6rem;
-  text-shadow: 0 0 14px #ffbe3b;
+  color: #fff4cc;
+  font-size: 1.8rem;
+  font-weight: 800;
+  text-shadow: 0 0 20px #ffbe3b, 0 0 10px #ff4757, 0 3px 8px rgba(0, 0, 0, 0.9);
+  z-index: 100;
 }
 
 @keyframes floatUp {
