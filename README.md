@@ -1,11 +1,11 @@
 # 💥 Block Blaster
 
-[![Release](https://img.shields.io/github/v/release/asitech5info-prog/BlockBlaster?color=2ed573&label=Release)](https://github.com/asitech5info-prog/BlockBlaster/releases/tag/v1.0.0)
-[![Android APK](https://img.shields.io/badge/Download-Android%20APK%20(v1.0.0)-00d2ff?logo=android&logoColor=white)](https://github.com/asitech5info-prog/BlockBlaster/releases/download/v1.0.0/BlockBlaster-v1.0.0.apk)
+[![Release](https://img.shields.io/github/v/release/asitech5info-prog/BlockBlaster?color=2ed573&label=Release)](https://github.com/asitech5info-prog/BlockBlaster/releases/tag/v1.0.1)
+[![Android APK](https://img.shields.io/badge/Download-Android%20APK%20(v1.0.1)-00d2ff?logo=android&logoColor=white)](https://github.com/asitech5info-prog/BlockBlaster/releases/download/v1.0.1/BlockBlaster-v1.0.1.apk)
 
 A fast, addictive, mobile-first block puzzle blast game built for **Web, iOS, and Android (Play Store)**. Inspired by Block Blast!, featuring glowing jewel visuals, dynamic combo chains, explosive line blast effects, and zero-dependency Web Audio sound effects.
 
-### 📥 [Direct Download APK v1.0.0 (3.64 MB)](https://github.com/asitech5info-prog/BlockBlaster/releases/download/v1.0.0/BlockBlaster-v1.0.0.apk)
+### 📥 [Direct Download APK v1.0.1](https://github.com/asitech5info-prog/BlockBlaster/releases/download/v1.0.1/BlockBlaster-v1.0.1.apk)
 
 ![Block Blaster Banner](public/icon.svg)
 

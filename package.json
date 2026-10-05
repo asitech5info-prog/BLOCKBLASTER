@@ -1,8 +1,8 @@
 {
-  "name": "block-blast-master",
-  "version": "1.0.0",
+  "name": "block-blaster",
+  "version": "1.0.1",
   "private": true,
-  "description": "Block Blast puzzle game for Web, iOS, and Android",
+  "description": "Block Blaster puzzle game for Web, iOS, and Android",
   "type": "module",
   "scripts": {
     "dev": "vite --host",

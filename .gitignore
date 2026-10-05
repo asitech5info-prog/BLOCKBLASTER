@@ -14,6 +14,10 @@ android/captures/
 *.apk
 *.aab
 
+# Screenshots
+screenshot_*.png
+screenshot.png
+
 # OS files
 .DS_Store
 Thumbs.db

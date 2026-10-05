@@ -48,7 +48,7 @@ export const SHAPE_DEFINITIONS = [
     color: 'color-cyan',
     matrix: [[1], [1], [1], [1], [1]]
   },
-  // 4. Squares
+  // 4. Squares & Rectangles (2x2, 2x3, 3x2, 3x3)
   {
     name: 'square-2',
     color: 'color-gold',
@@ -58,8 +58,34 @@ export const SHAPE_DEFINITIONS = [
     ]
   },
   {
+    name: 'rect-2x3',
+    color: 'color-purple',
+    matrix: [
+      [1, 1],
+      [1, 1],
+      [1, 1]
+    ]
+  },
+  {
+    name: 'rect-3x2',
+    color: 'color-purple',
+    matrix: [
+      [1, 1, 1],
+      [1, 1, 1]
+    ]
+  },
+  {
     name: 'square-3',
     color: 'color-orange',
+    matrix: [
+      [1, 1, 1],
+      [1, 1, 1],
+      [1, 1, 1]
+    ]
+  },
+  {
+    name: 'square-3-blue',
+    color: 'color-cyan',
     matrix: [
       [1, 1, 1],
       [1, 1, 1],
