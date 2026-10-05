@@ -168,4 +168,47 @@ test.describe('Block Blaster Full Feature Verification', () => {
     await expect(gameplay).toBeVisible();
   });
 
+  test('Feature 7: Rich About Section Modal Verification', async ({ page }) => {
+    // Open About Modal directly from Homepage topbar
+    const homeAboutBtn = page.locator('#home-about-btn');
+    await expect(homeAboutBtn).toBeVisible();
+    await homeAboutBtn.click();
+
+    const aboutModal = page.locator('#about-modal');
+    await expect(aboutModal).toBeVisible();
+
+    // Verify key elements within the About modal
+    await expect(page.locator('.about-title')).toContainText('About Game');
+    await expect(page.locator('.about-game-name')).toContainText('BLOCK BLASTER');
+    await expect(page.locator('.about-version-pill')).toContainText('Version 1.0.0');
+    await expect(page.locator('.about-features-grid')).toBeVisible();
+    await expect(page.locator('.about-steps-list')).toBeVisible();
+    await expect(page.locator('.credits-author')).toContainText('asitech5info-prog');
+
+    // Close via Got It button
+    const gotItBtn = page.locator('#about-gotit-btn');
+    await expect(gotItBtn).toBeVisible();
+    await gotItBtn.click();
+    await expect(aboutModal).toBeHidden();
+
+    // Open from Settings Modal
+    const settingsBtn = page.locator('#home-settings-btn');
+    await settingsBtn.click();
+    const settingsModal = page.locator('#settings-modal');
+    await expect(settingsModal).toBeVisible();
+
+    const settingsAboutBtn = page.locator('#settings-about-btn');
+    await expect(settingsAboutBtn).toBeVisible();
+    await settingsAboutBtn.click();
+
+    // Settings should be hidden and About should be visible
+    await expect(settingsModal).toBeHidden();
+    await expect(aboutModal).toBeVisible();
+
+    // Close via top-right '✕' button
+    const closeBtn = page.locator('#about-close-btn');
+    await closeBtn.click();
+    await expect(aboutModal).toBeHidden();
+  });
+
 });

@@ -39,6 +39,7 @@ export class BlockBlasterGame {
     // Modals
     this.settingsModal = document.getElementById('settings-modal');
     this.levelWinModal = document.getElementById('level-win-modal');
+    this.aboutModal = document.getElementById('about-modal');
 
     // Board & Game Elements
     this.boardEl = document.getElementById('game-board');
@@ -104,6 +105,7 @@ export class BlockBlasterGame {
 
     if (this.settingsModal) this.settingsModal.classList.add('hidden');
     if (this.levelWinModal) this.levelWinModal.classList.add('hidden');
+    if (this.aboutModal) this.aboutModal.classList.add('hidden');
   }
 
   startLoadingSequence() {
@@ -693,6 +695,30 @@ export class BlockBlasterGame {
       sound.playClick();
       this.switchNextTheme();
     });
+
+    // About Modal Handlers
+    const openAboutModal = () => {
+      sound.playClick();
+      if (this.settingsModal) this.settingsModal.classList.add('hidden');
+      if (this.aboutModal) this.aboutModal.classList.remove('hidden');
+    };
+
+    const closeAboutModal = () => {
+      sound.playClick();
+      if (this.aboutModal) this.aboutModal.classList.add('hidden');
+    };
+
+    const homeAboutBtn = document.getElementById('home-about-btn');
+    if (homeAboutBtn) homeAboutBtn.addEventListener('click', openAboutModal);
+
+    const settingsAboutBtn = document.getElementById('settings-about-btn');
+    if (settingsAboutBtn) settingsAboutBtn.addEventListener('click', openAboutModal);
+
+    const aboutCloseBtn = document.getElementById('about-close-btn');
+    if (aboutCloseBtn) aboutCloseBtn.addEventListener('click', closeAboutModal);
+
+    const aboutGotitBtn = document.getElementById('about-gotit-btn');
+    if (aboutGotitBtn) aboutGotitBtn.addEventListener('click', closeAboutModal);
 
     // Game Over Actions (Image 4)
     this.deathRestartBtn.addEventListener('click', () => {

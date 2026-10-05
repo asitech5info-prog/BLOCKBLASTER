@@ -46,9 +46,11 @@
 
       <!-- ================= 2. HOMEPAGE SCREEN ================= -->
       <section id="screen-home" class="screen screen-home hidden">
-        <!-- Top Right Settings Gear -->
         <header class="home-topbar">
-          <button id="home-settings-btn" class="gear-btn" aria-label="Settings">
+          <button id="home-about-btn" class="gear-btn info-btn" aria-label="About Game" title="About Block Blaster">
+            <span class="gear-icon">ℹ️</span>
+          </button>
+          <button id="home-settings-btn" class="gear-btn" aria-label="Settings" title="Settings">
             <span class="gear-icon">⚙️</span>
           </button>
         </header>
@@ -275,6 +277,143 @@
             </button>
             <button id="settings-theme-btn" class="secondary-pill-btn settings-action-btn">
               <span>🎨 Switch Theme</span>
+            </button>
+            <button id="settings-about-btn" class="secondary-pill-btn settings-action-btn btn-about">
+              <span>ℹ️ About Block Blaster</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 8. ABOUT MODAL ================= -->
+      <div id="about-modal" class="modal-overlay hidden" data-testid="about-modal">
+        <div class="modal-card about-card">
+          <div class="about-header">
+            <div class="about-header-title-wrap">
+              <span class="about-header-icon">👑</span>
+              <h2 class="about-title">About Game</h2>
+            </div>
+            <button id="about-close-btn" class="modal-close-btn" aria-label="Close About">✕</button>
+          </div>
+
+          <div class="about-scroll-body">
+            <!-- Hero Badge & Title -->
+            <div class="about-hero-badge">
+              <div class="about-gem-glow">💎</div>
+              <div class="about-hero-titles">
+                <h3 class="about-game-name">BLOCK BLASTER</h3>
+                <p class="about-tagline">Adventure Master • Pro Edition</p>
+                <div class="about-version-pill">
+                  <span class="version-dot"></span>
+                  <span>Version 1.0.0</span>
+                  <span class="pill-divider">•</span>
+                  <span>Cross-Platform Ready</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- About Story / Overview -->
+            <div class="about-section-box">
+              <h4 class="about-box-title">✨ What is Block Blaster?</h4>
+              <p class="about-text">
+                <strong>Block Blaster</strong> is an addictive block puzzle game built with smooth tactile snapping, harmonic audio effects, and rich visuals. Clear lines, trigger explosive combo chains, and journey through <strong>500 hand-crafted Adventure levels</strong> to win all 5 Legendary Trophies!
+              </p>
+            </div>
+
+            <!-- Gameplay Features Grid -->
+            <div class="about-section-box">
+              <h4 class="about-box-title">🎮 Key Highlights</h4>
+              <div class="about-features-grid">
+                <div class="about-feature-item">
+                  <span class="feat-icon">🗺️</span>
+                  <div class="feat-meta">
+                    <strong>500 Levels</strong>
+                    <small>5 Trophy Worlds</small>
+                  </div>
+                </div>
+                <div class="about-feature-item">
+                  <span class="feat-icon">♾️</span>
+                  <div class="feat-meta">
+                    <strong>Classic Mode</strong>
+                    <small>Endless High Score</small>
+                  </div>
+                </div>
+                <div class="about-feature-item">
+                  <span class="feat-icon">🎵</span>
+                  <div class="feat-meta">
+                    <strong>Harmonic Chords</strong>
+                    <small>Procedural Audio</small>
+                  </div>
+                </div>
+                <div class="about-feature-item">
+                  <span class="feat-icon">🎨</span>
+                  <div class="feat-meta">
+                    <strong>Dynamic Themes</strong>
+                    <small>All-Clear Chameleon</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- How to Play Quick Cards -->
+            <div class="about-section-box">
+              <h4 class="about-box-title">📖 Rules & How to Play</h4>
+              <div class="about-steps-list">
+                <div class="about-step-card">
+                  <div class="step-num-badge">1</div>
+                  <div class="step-content">
+                    <strong>Drag or Tap to Place</strong>
+                    <p>Pick shapes from your bottom tray and drop them onto the 8×8 grid.</p>
+                  </div>
+                </div>
+                <div class="about-step-card">
+                  <div class="step-num-badge">2</div>
+                  <div class="step-content">
+                    <strong>Blast Rows & Columns</strong>
+                    <p>Fill entire horizontal lines or vertical columns to vaporize blocks.</p>
+                  </div>
+                </div>
+                <div class="about-step-card">
+                  <div class="step-num-badge">3</div>
+                  <div class="step-content">
+                    <strong>Chain Dynamic Combos</strong>
+                    <p>Blast lines on consecutive moves to escalate your combo multiplier (x2, x3...)!</p>
+                  </div>
+                </div>
+                <div class="about-step-card">
+                  <div class="step-num-badge">4</div>
+                  <div class="step-content">
+                    <strong>Trigger Perfect Clears</strong>
+                    <p>Clear every single block off the board to activate a surprise theme change!</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pro Tips -->
+            <div class="about-section-box pro-tips-box">
+              <h4 class="about-box-title">💡 Pro Tips</h4>
+              <ul class="about-tips-list">
+                <li>Keep the center clear to fit the giant <strong>3×3 square block</strong>.</li>
+                <li>Clear multiple rows and columns together for mega-score blasts.</li>
+                <li>In Adventure Mode, target diamond blocks first to conquer the level!</li>
+              </ul>
+            </div>
+
+            <!-- Studio Credits -->
+            <div class="about-credits-card">
+              <div class="credits-heart">💖</div>
+              <div class="credits-text">
+                <p class="credits-author">Crafted with passion by <strong>asitech5info-prog</strong></p>
+                <p class="credits-stack">HTML5 • Web Audio API • Capacitor Native • Android APK Ready</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Confirm Button -->
+          <div class="about-footer-actions">
+            <button id="about-gotit-btn" class="green-pill-btn about-ok-btn">
+              <span>🚀 Got It, Let's Play!</span>
             </button>
           </div>
         </div>
