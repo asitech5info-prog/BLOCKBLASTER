@@ -4,13 +4,13 @@ color 0b
 setlocal enabledelayedexpansion
 
 set GIT_EXE="C:\Users\Sohaib Irfan\.git-bin\cmd\git.exe"
-set REPO_URL=https://github.com/asitech5info-prog/BLOCKBLASTER.git
+set REPO_URL=https://github.com/asitech5info-prog/BlockBlaster.git
 
 echo ======================================================================
 echo             BLOCK BLASTER - PUSH REPOSITORY TO GITHUB
 echo ======================================================================
 echo.
-echo Target Repository: https://github.com/asitech5info-prog/BLOCKBLASTER
+echo Target Repository: https://github.com/asitech5info-prog/BlockBlaster
 echo.
 
 if not "%~1"=="" (
@@ -42,7 +42,7 @@ if "%PAT_TOKEN%"=="" (
 echo.
 echo [1/3] Configuring remote with token...
 %GIT_EXE% remote remove origin >nul 2>&1
-%GIT_EXE% remote add origin https://%PAT_TOKEN%@github.com/asitech5info-prog/BLOCKBLASTER.git
+%GIT_EXE% remote add origin https://%PAT_TOKEN%@github.com/asitech5info-prog/BlockBlaster.git
 %GIT_EXE% branch -M main
 
 echo [2/3] Pushing to GitHub...
@@ -83,10 +83,10 @@ echo ======================================================================
 echo [SUCCESS] Block Blaster has been successfully pushed to GitHub!
 echo ======================================================================
 echo.
-echo Repository: https://github.com/asitech5info-prog/BLOCKBLASTER
+echo Repository: https://github.com/asitech5info-prog/BlockBlaster
 echo.
 echo The GitHub Actions APK build workflow has automatically started:
-echo   --^> https://github.com/asitech5info-prog/BLOCKBLASTER/actions
+echo   --^> https://github.com/asitech5info-prog/BlockBlaster/actions
 echo.
 echo Once the workflow completes (approx. 2-3 mins), download your APK
 echo from the "Artifacts" section of the completed run!
