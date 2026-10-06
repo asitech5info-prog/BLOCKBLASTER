@@ -33,32 +33,9 @@ export function fireBlockBlast(x, y, color = '#ff4757') {
 }
 
 /**
- * Huge celebratory fireworks confetti for high scores or multi-combos
+ * Celebratory fireworks confetti disabled as requested: only sound plays on victory or game over
  */
 export function fireVictoryCelebration() {
-  if (!customConfetti) return;
-
-  const duration = 2.2 * 1000;
-  const end = Date.now() + duration;
-
-  (function frame() {
-    customConfetti({
-      particleCount: 4,
-      angle: 60,
-      spread: 55,
-      origin: { x: 0, y: 0.7 },
-      colors: ['#00d2ff', '#ff4757', '#ffbe3b', '#2ed573', '#e056fd']
-    });
-    customConfetti({
-      particleCount: 4,
-      angle: 120,
-      spread: 55,
-      origin: { x: 1, y: 0.7 },
-      colors: ['#00d2ff', '#ff4757', '#ffbe3b', '#2ed573', '#e056fd']
-    });
-
-    if (Date.now() < end) {
-      requestAnimationFrame(frame);
-    }
-  })();
+  // No confetti effect - audio only
 }
+

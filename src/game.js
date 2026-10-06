@@ -274,14 +274,14 @@ export class BlockBlasterGame {
       this.score = saved.score || 0;
       this.adventureGems = saved.adventureGems || { ...this.levelObjective.targetGems };
       this.adventureTotalGems = saved.adventureTotalGems || this.levelObjective.totalTarget;
-      this.currentPieces = saved.currentPieces || generateThreePieces(this.board, this.boardSize);
+      this.currentPieces = saved.currentPieces || generateThreePieces(this.board, this.boardSize, this.mode, this.adventureGems);
       this.isGameOver = false;
     } else {
       this.board = JSON.parse(JSON.stringify(this.levelObjective.initialBoard));
       this.score = 0;
       this.adventureGems = { ...this.levelObjective.targetGems };
       this.adventureTotalGems = this.levelObjective.totalTarget;
-      this.currentPieces = generateThreePieces(this.board, this.boardSize);
+      this.currentPieces = generateThreePieces(this.board, this.boardSize, this.mode, this.adventureGems);
       this.isGameOver = false;
     }
 
@@ -418,7 +418,7 @@ export class BlockBlasterGame {
   }
 
   spawnNewPieces() {
-    const pieces = generateThreePieces(this.board, this.boardSize);
+    const pieces = generateThreePieces(this.board, this.boardSize, this.mode, this.adventureGems);
     this.currentPieces = pieces;
     this.renderTray();
     this.saveGameState();
@@ -447,6 +447,9 @@ export class BlockBlasterGame {
           cell.className = 'shape-cell';
           if (piece.matrix[r][c]) {
             cell.classList.add('filled', piece.color);
+            if (piece.gemMatrix && piece.gemMatrix[r] && piece.gemMatrix[r][c]) {
+              cell.classList.add('has-diamond', piece.gemMatrix[r][c]);
+            }
           }
           gridEl.appendChild(cell);
         }
@@ -563,7 +566,15 @@ export class BlockBlasterGame {
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         if (piece.matrix[r][c]) {
-          this.board[startR + r][startC + c] = piece.color;
+          if (piece.gemMatrix && piece.gemMatrix[r] && piece.gemMatrix[r][c]) {
+            this.board[startR + r][startC + c] = {
+              color: piece.color,
+              hasDiamond: true,
+              diamondType: piece.gemMatrix[r][c]
+            };
+          } else {
+            this.board[startR + r][startC + c] = piece.color;
+          }
           blockCount++;
         }
       }
@@ -670,8 +681,8 @@ export class BlockBlasterGame {
           this.adventureGems.star = Math.max(0, this.adventureGems.star - starBlasted);
         }
 
-        // If level has single objective count (e.g. 90), deduct blasted gems
-        if (this.adventureTotalGems > 0 && totalBlasted > 0) {
+        // Deduct blasted gems and update HUD
+        if (totalBlasted > 0) {
           this.updateGemsUI();
         }
       }
@@ -775,10 +786,12 @@ export class BlockBlasterGame {
     adventure.completeLevel(this.currentLevelNum, this.score);
     medalManager.recordLevelCompleted(this.currentLevelNum);
     sound.playComboFanfare();
-    fireVictoryCelebration();
 
     const streakEl = document.getElementById('win-streak-count');
     if (streakEl) streakEl.textContent = `×${this.currentLevelNum}`;
+
+    const winTitle = document.getElementById('win-level-title');
+    if (winTitle) winTitle.textContent = `Level ${this.currentLevelNum} Completed!`;
 
     this.updateHomeUI();
 
@@ -786,7 +799,7 @@ export class BlockBlasterGame {
       if (this.levelWinModal) {
         this.levelWinModal.classList.remove('hidden');
       }
-    }, 600);
+    }, 450);
   }
 
   // --- 8. Game Over Flow & 5-Second Countdown Timer ---
@@ -806,9 +819,7 @@ export class BlockBlasterGame {
     medalManager.recordRound(this.score, this.combo);
     this.clearSavedGameState();
 
-    if (this.mode === 'classic') {
-      fireVictoryCelebration();
-    }
+    // Confetti removed as requested - only game over sound plays!
 
     this.deathFinalScoreEl.textContent = this.score;
     this.deathBestScoreEl.textContent = this.bestScore;
@@ -945,6 +956,17 @@ export class BlockBlasterGame {
       const targetLvl = adventure.getCurrentLevel();
       this.startAdventureLevel(targetLvl);
     });
+
+    const mapPinBtn = document.getElementById('home-map-pin-btn');
+    if (mapPinBtn) {
+      mapPinBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sound.playClick();
+        this.selectedLevelOnMap = adventure.unlockedLevel;
+        this.setupAdventureMap();
+        this.showScreen('screen-adventure-map');
+      });
+    }
 
     const moreGamesBtn = document.getElementById('btn-mode-moregames');
     if (moreGamesBtn) {
@@ -1274,10 +1296,12 @@ export class BlockBlasterGame {
       this.pendingAvatarPos.x = posX;
       this.pendingAvatarPos.y = posY;
 
+      // Update avatar immediately for zero-latency 60fps tracking!
+      this.updateDragAvatarPosition(posX, posY);
+
       if (!this.isRafScheduled) {
         this.isRafScheduled = true;
         requestAnimationFrame(() => {
-          this.updateDragAvatarPosition(this.pendingAvatarPos.x, this.pendingAvatarPos.y);
           this.updateBoardGhost(this.pendingAvatarPos.x, this.pendingAvatarPos.y, drag.piece);
           this.isRafScheduled = false;
         });
@@ -1342,6 +1366,9 @@ export class BlockBlasterGame {
         cell.className = 'avatar-cell';
         if (piece.matrix[r][c]) {
           cell.classList.add('filled', piece.color);
+          if (piece.gemMatrix && piece.gemMatrix[r] && piece.gemMatrix[r][c]) {
+            cell.classList.add('has-diamond', piece.gemMatrix[r][c]);
+          }
         }
         this.dragAvatarEl.appendChild(cell);
       }

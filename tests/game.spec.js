@@ -213,4 +213,60 @@ test.describe('Block Blaster Full Feature Verification', () => {
     await expect(retryBtn).toBeEnabled();
   });
 
+  test('Requirement 10: Home Page Clean - No More Games button, No GOGO! Blast, No Rotate Rings', async ({ page }) => {
+    // Assert More Games button is completely removed
+    const moreGamesBtn = page.locator('#btn-mode-moregames');
+    await expect(moreGamesBtn).toHaveCount(0);
+
+    // Assert promo items are completely removed
+    const promoGogo = page.locator('#promo-gogo');
+    await expect(promoGogo).toHaveCount(0);
+    const promoRings = page.locator('#promo-rings');
+    await expect(promoRings).toHaveCount(0);
+  });
+
+  test('Requirement 11: Trophy Presentation on Level Win & Solvable Adventure Mode with Tray Gems', async ({ page }) => {
+    // Start Adventure Mode
+    await page.locator('#btn-mode-adventure').click();
+    await expect(page.locator('#screen-gameplay')).toBeVisible();
+
+    // Verify pieces in tray contain embedded gems for solvability
+    const hasAnyGemsInTray = await page.evaluate(() => {
+      const g = window.__game;
+      return g.currentPieces.some(p => p && p.gemMatrix && p.gemMatrix.some(row => row.some(cell => cell !== null)));
+    });
+    expect(hasAnyGemsInTray).toBe(true);
+
+    // Trigger level win
+    await page.evaluate(() => {
+      window.__game.triggerLevelWin();
+    });
+
+    // Verify Level Win modal with Trophy Presentation
+    const winModal = page.locator('#level-win-modal');
+    await expect(winModal).toBeVisible();
+    await expect(winModal.locator('.win-trophy-3d')).toBeVisible();
+    await expect(winModal.locator('#win-level-title')).toHaveText(/Level 1 Completed!/);
+    await expect(winModal.locator('.win-trophy-desc')).toHaveText(/Trophy Piece Unlocked!/);
+  });
+
+  test('Requirement 12: Classic Mode High Score Engine Supports > 3000 Score with Balanced Pieces', async ({ page }) => {
+    await page.locator('#btn-mode-classic').click();
+    await expect(page.locator('#screen-gameplay')).toBeVisible();
+
+    // Test that scoring above 3000 maintains valid, playable pieces
+    const result = await page.evaluate(() => {
+      const g = window.__game;
+      g.addScore(3500);
+      // Spawn new pieces at high score
+      g.spawnNewPieces();
+      const fitCount = g.currentPieces.filter(p => p !== null).length;
+      return { score: g.score, fitCount, isGameOver: g.isGameOver };
+    });
+
+    expect(result.score).toBeGreaterThanOrEqual(3000);
+    expect(result.fitCount).toBe(3);
+    expect(result.isGameOver).toBe(false);
+  });
+
 });

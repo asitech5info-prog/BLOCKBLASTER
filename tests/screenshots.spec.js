@@ -47,10 +47,21 @@ test('Capture All New Screenshots for Verification', async ({ page }) => {
 
   // 7. Adventure 96-Level Silhouette Map
   await page.locator('#game-back-btn').click();
-  await page.locator('#btn-mode-moregames').click();
+  await page.locator('#home-map-pin-btn').click();
   await page.waitForSelector('#screen-adventure-map.active');
   await page.screenshot({ path: path.join(rootDir, 'screenshot_adventure_map_new.png') });
   await page.locator('#map-back-btn').click();
+
+  // 7b. Adventure Level Win Trophy Presentation Modal
+  await page.evaluate(() => {
+    window.__game.triggerLevelWin();
+  });
+  await page.waitForSelector('#level-win-modal:not(.hidden)');
+  await page.screenshot({ path: path.join(rootDir, 'screenshot_level_win_trophy_new.png') });
+  await page.locator('#win-map-btn').click();
+  await page.waitForSelector('#screen-adventure-map.active');
+  await page.locator('#map-back-btn').click();
+  await page.waitForSelector('#screen-home.active');
 
   // 8. Classic Mode Gameplay (Score Hero & High Score starting at 0)
   await page.locator('#btn-mode-classic').click();

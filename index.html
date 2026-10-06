@@ -87,7 +87,7 @@
             </div>
             <button id="btn-mode-adventure" class="menu-pill-btn btn-adventure" data-testid="btn-adventure">
               <!-- Crisp White Location Logo as requested -->
-              <div class="pill-icon-svg-wrap">
+              <div class="pill-icon-svg-wrap" id="home-map-pin-btn" title="Adventure Map">
                 <svg class="pill-svg-icon" viewBox="0 0 24 24" width="30" height="30" fill="#ffffff">
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                 </svg>
@@ -113,31 +113,6 @@
             <span class="pill-text-large">Classic</span>
           </button>
 
-          <!-- Button 3: More Games Button (Magenta Pill matching Reference Screenshot) -->
-          <button id="btn-mode-moregames" class="menu-pill-btn btn-moregames">
-            <div class="pill-icon-svg-wrap">
-              <svg class="pill-svg-icon" viewBox="0 0 24 24" width="30" height="30" fill="#ffffff">
-                <path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H9v2H7v-2H5v-2h2V9h2v2h2v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3-3c-.83 0-1.5-.67-1.5-1.5S17.67 9 18.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
-              </svg>
-            </div>
-            <span class="pill-text-large">More Games</span>
-          </button>
-        </div>
-
-        <!-- Bottom Promo Mini Badges (Matching Reference Screenshot) -->
-        <div class="home-footer-promos">
-          <div class="promo-item" id="promo-gogo">
-            <div class="promo-circle-icon promo-maze">
-              <span class="promo-art">🌀</span>
-            </div>
-            <span class="promo-title">GOGO! Blast</span>
-          </div>
-          <div class="promo-item" id="promo-rings">
-            <div class="promo-circle-icon promo-rings-art">
-              <span class="promo-art">💫</span>
-            </div>
-            <span class="promo-title">Rotate Rings</span>
-          </div>
         </div>
       </section>
 
@@ -359,26 +334,39 @@
         </div>
       </section>
 
-      <!-- ================= 7. LEVEL COMPLETE MODAL (Adventure) ================= -->
-      <div id="level-win-modal" class="modal-overlay hidden">
-        <div class="modal-card win-card">
+      <!-- ================= 7. LEVEL COMPLETE MODAL (Adventure Trophy Presentation) ================= -->
+      <div id="level-win-modal" class="modal-overlay hidden" data-testid="level-win-modal">
+        <div class="modal-card win-card trophy-win-card">
+          <!-- Top Banner: Consecutive Victories -->
           <div class="win-banner-badge">
             <span class="crown-sm">👑</span>
             <span>Consecutive Victories</span>
             <strong id="win-streak-count" class="streak-win-mult">×1</strong>
           </div>
 
+          <!-- Trophy Presentation Centerpiece -->
           <div class="win-celebration-center">
-            <div class="win-diamond-badge">
-              <div class="big-blue-diamond"></div>
-              <div class="win-checkmark">✓</div>
+            <div class="win-trophy-stage">
+              <div class="trophy-ambient-glow"></div>
+              <div class="win-trophy-3d">🏆</div>
+              <div class="trophy-sparkles">
+                <span class="sparkle-star s1">✨</span>
+                <span class="sparkle-star s2">🌟</span>
+                <span class="sparkle-star s3">✨</span>
+              </div>
             </div>
-            <h2 class="win-title">Well Done!</h2>
+            <h2 id="win-level-title" class="win-title">Level Completed!</h2>
+            <p class="win-trophy-desc">Adventure Trophy Piece Unlocked!</p>
           </div>
 
+          <!-- Action Buttons -->
           <div class="win-buttons">
-            <button id="win-next-btn" class="purple-pill-btn win-action-btn">▶ Next Level</button>
-            <button id="win-map-btn" class="secondary-pill-btn win-action-btn">Map</button>
+            <button id="win-next-btn" class="purple-pill-btn win-action-btn">
+              <span>▶ Next Level</span>
+            </button>
+            <button id="win-map-btn" class="secondary-pill-btn win-action-btn">
+              <span>🗺️ Map</span>
+            </button>
           </div>
         </div>
       </div>
