@@ -2,7 +2,7 @@ import { SHAPE_DEFINITIONS, canFitAt, canFitAnywhere, generateThreePieces } from
 import { sound } from './audio.js';
 import { fireVictoryCelebration } from './particles.js';
 import { adventure, ADVENTURE_SILHOUETTE_ROWS } from './adventure.js';
-import { medalManager, AWARDS_LIST } from './medals.js';
+import { medalManager, AWARDS_DEFINITIONS } from './medals.js';
 
 export class BlockBlasterGame {
   constructor() {
@@ -10,16 +10,17 @@ export class BlockBlasterGame {
     this.board = Array.from({ length: this.boardSize }, () => Array(this.boardSize).fill(null));
     this.currentPieces = [null, null, null];
     this.score = 0;
-    this.bestScore = parseInt(localStorage.getItem('block_blaster_best') || '423506', 10);
+    // High score starts at 0 and grows by playing
+    this.bestScore = parseInt(localStorage.getItem('block_blaster_best') || '0', 10);
     this.combo = 0;
     this.isGameOver = false;
 
     // Mode: 'classic' or 'adventure'
     this.mode = 'classic';
-    this.currentLevelNum = 1;
+    this.currentLevelNum = adventure.getCurrentLevel();
     this.levelObjective = null;
     this.objectiveProgress = 0;
-    this.selectedLevelOnMap = 1;
+    this.selectedLevelOnMap = adventure.getCurrentLevel();
 
     // Adventure Gem Counts
     this.adventureGems = {
@@ -27,20 +28,23 @@ export class BlockBlasterGame {
       orange: 0,
       star: 0
     };
+    this.adventureTotalGems = 0;
 
-    // Themes (switches dynamically when grid is completely cleared)
-    this.themes = ['theme-teal', 'theme-pink', 'theme-slate', 'theme-purple', 'theme-knit', 'theme-egg'];
+    // Themes (switches dynamically on full board clear)
+    this.themes = ['theme-blue', 'theme-teal', 'theme-pink', 'theme-purple', 'theme-slate'];
     this.currentThemeIndex = 0;
 
     // 5-Second Game Over Countdown Timer
     this.countdownTimer = null;
     this.countdownSeconds = 5;
 
-    // Drag State
+    // Drag & Drop State
     this.activeDrag = null;
     this.selectedSlotIndex = null;
     this.isRafScheduled = false;
     this.pendingAvatarPos = { x: 0, y: 0 };
+    this.lastGhostCoords = null;
+    this.cachedBoardRect = null;
 
     // Screen Elements
     this.screenLoading = document.getElementById('screen-loading');
@@ -73,15 +77,27 @@ export class BlockBlasterGame {
     this.allClearBannerEl = document.getElementById('all-clear-banner');
 
     // Adventure HUD Elements
-    this.adventureScoreTargetHud = document.getElementById('adventure-score-target-hud');
-    this.adventureCurrentScoreEl = document.getElementById('adventure-current-score');
-    this.adventureTargetScoreEl = document.getElementById('adventure-target-score');
-    this.adventureTargetFillEl = document.getElementById('adventure-target-fill');
-
     this.adventureGemsHud = document.getElementById('adventure-gems-hud');
+    this.gemSingleWrap = document.getElementById('gem-single-wrap');
+    this.gemCountSingle = document.getElementById('gem-count-single');
+    this.gemMultiWrap = document.getElementById('gem-multi-wrap');
     this.gemCountBlueEl = document.getElementById('gem-count-blue');
     this.gemCountOrangeEl = document.getElementById('gem-count-orange');
     this.gemCountStarEl = document.getElementById('gem-count-star');
+    this.gemBadgeBlue = document.getElementById('gem-badge-blue');
+    this.gemBadgeOrange = document.getElementById('gem-badge-orange');
+    this.gemBadgeStar = document.getElementById('gem-badge-star');
+
+    // Home Elements
+    this.homeAdventureLevelText = document.getElementById('home-adventure-level-text');
+    this.homeAdventureProgressFill = document.getElementById('home-adventure-progress-fill');
+    this.homeAdventurePctText = document.getElementById('home-adventure-pct-text');
+    this.homeWinStreakNum = document.getElementById('home-win-streak-num');
+
+    // Settings Modal Elements
+    this.settingsExitHomeBtn = document.getElementById('settings-exit-home-btn');
+    this.soundToggleBtn = document.getElementById('settings-sound-btn');
+    this.bgmToggleBtn = document.getElementById('settings-bgm-btn');
 
     // Game Over Elements
     this.deathFinalScoreEl = document.getElementById('death-final-score');
@@ -96,10 +112,6 @@ export class BlockBlasterGame {
     // Map Elements
     this.adventureSilhouetteGrid = document.getElementById('adventure-silhouette-grid');
     this.mapPlayLevelBtn = document.getElementById('map-play-level-btn');
-
-    // Audio & Settings Elements
-    this.soundToggleBtn = document.getElementById('settings-sound-btn');
-    this.bgmToggleBtn = document.getElementById('settings-bgm-btn');
   }
 
   init() {
@@ -107,8 +119,21 @@ export class BlockBlasterGame {
     this.setupEventListeners();
     this.setupAdventureMap();
     this.setupMedalsScreen();
+    this.updateHomeUI();
     this.applyTheme(this.themes[this.currentThemeIndex]);
     this.startLoadingSequence();
+
+    window.addEventListener('resize', () => {
+      this.updateBoardDimensions();
+    });
+  }
+
+  updateBoardDimensions() {
+    if (this.boardEl) {
+      this.cachedBoardRect = this.boardEl.getBoundingClientRect();
+      const cellSize = (this.cachedBoardRect.width - 16 - 7 * 4) / 8;
+      document.documentElement.style.setProperty('--drag-cell-size', `${Math.max(28, cellSize)}px`);
+    }
   }
 
   // --- 1. Screen Router ---
@@ -135,6 +160,10 @@ export class BlockBlasterGame {
     });
 
     this.closeAllModals();
+
+    if (targetId === 'screen-gameplay') {
+      setTimeout(() => this.updateBoardDimensions(), 50);
+    }
   }
 
   closeAllModals() {
@@ -153,15 +182,34 @@ export class BlockBlasterGame {
     let progress = 0;
 
     const interval = setInterval(() => {
-      progress += 20;
+      progress += 25;
       if (bar) bar.style.width = `${Math.min(100, progress)}%`;
       if (progress >= 100) {
         clearInterval(interval);
         setTimeout(() => {
+          this.updateHomeUI();
           this.showScreen('screen-home');
-        }, 250);
+        }, 200);
       }
-    }, 70);
+    }, 60);
+  }
+
+  updateHomeUI() {
+    const currentLvl = adventure.getCurrentLevel();
+    if (this.homeAdventureLevelText) {
+      this.homeAdventureLevelText.textContent = `Level ${currentLvl}`;
+    }
+    if (this.homeWinStreakNum) {
+      this.homeWinStreakNum.textContent = String(currentLvl);
+    }
+
+    const pct = Math.min(100, Math.round(((currentLvl - 1) / 96) * 100));
+    if (this.homeAdventureProgressFill) {
+      this.homeAdventureProgressFill.style.width = `${Math.max(15, pct)}%`;
+    }
+    if (this.homeAdventurePctText) {
+      this.homeAdventurePctText.textContent = `${Math.max(15, pct)}%`;
+    }
   }
 
   createBoardGrid() {
@@ -180,11 +228,11 @@ export class BlockBlasterGame {
   // --- 2. Starting Modes & State Persistence ---
   startClassicMode() {
     this.mode = 'classic';
-    this.adventureScoreTargetHud.classList.add('hidden');
     this.adventureGemsHud.classList.add('hidden');
     this.classicBestHud.classList.remove('hidden');
+    const heroEl = document.querySelector('.score-hero');
+    if (heroEl) heroEl.classList.remove('hidden');
 
-    // Check for saved in-progress classic game
     const saved = this.loadSavedGameState('classic');
     if (saved && saved.inProgress && saved.board) {
       this.board = saved.board;
@@ -210,50 +258,72 @@ export class BlockBlasterGame {
   startAdventureLevel(levelNum) {
     this.mode = 'adventure';
     this.currentLevelNum = levelNum;
+    adventure.setCurrentLevel(levelNum);
     this.levelObjective = adventure.getLevelData(levelNum);
     this.objectiveProgress = 0;
 
     this.classicBestHud.classList.add('hidden');
+    this.adventureGemsHud.classList.remove('hidden');
+    const heroEl = document.querySelector('.score-hero');
+    if (heroEl) heroEl.classList.add('hidden');
 
     // Check for saved in-progress adventure game for this level
     const saved = this.loadSavedGameState('adventure');
     if (saved && saved.inProgress && saved.level === levelNum && saved.board) {
       this.board = saved.board;
       this.score = saved.score || 0;
-      this.objectiveProgress = saved.objectiveProgress || 0;
+      this.adventureGems = saved.adventureGems || { ...this.levelObjective.targetGems };
+      this.adventureTotalGems = saved.adventureTotalGems || this.levelObjective.totalTarget;
       this.currentPieces = saved.currentPieces || generateThreePieces(this.board, this.boardSize);
       this.isGameOver = false;
     } else {
       this.board = JSON.parse(JSON.stringify(this.levelObjective.initialBoard));
       this.score = 0;
-      this.objectiveProgress = 0;
+      this.adventureGems = { ...this.levelObjective.targetGems };
+      this.adventureTotalGems = this.levelObjective.totalTarget;
       this.currentPieces = generateThreePieces(this.board, this.boardSize);
       this.isGameOver = false;
     }
 
-    // Configure Adventure HUD based on objective type
-    if (this.levelObjective.type === 'score') {
-      this.adventureScoreTargetHud.classList.remove('hidden');
-      this.adventureGemsHud.classList.add('hidden');
-      this.adventureTargetScoreEl.textContent = this.levelObjective.target;
-      this.updateScoreTargetUI();
-    } else {
-      this.adventureScoreTargetHud.classList.add('hidden');
-      this.adventureGemsHud.classList.remove('hidden');
-      this.adventureGems = {
-        blue: Math.max(0, Math.floor(this.levelObjective.target / 3) + 2),
-        orange: Math.max(0, Math.floor(this.levelObjective.target / 3)),
-        star: Math.max(0, Math.floor(this.levelObjective.target / 3))
-      };
-      this.updateGemsUI();
-    }
-
+    this.configureAdventureHUD();
     this.renderBoard();
     this.renderTray();
     this.updateScoreUI();
     this.updateComboUI();
     this.saveGameState();
     this.showScreen('screen-gameplay');
+  }
+
+  configureAdventureHUD() {
+    const goals = this.adventureGems;
+    const activeTypes = [];
+    if (goals.blue > 0) activeTypes.push('blue');
+    if (goals.orange > 0) activeTypes.push('orange');
+    if (goals.star > 0) activeTypes.push('star');
+
+    if (activeTypes.length <= 1) {
+      // Single Gem Center View matching Reference Image 1 (Level 1: 90 gems)
+      this.gemSingleWrap.classList.remove('hidden');
+      this.gemMultiWrap.classList.add('hidden');
+      this.gemCountSingle.textContent = String(this.adventureTotalGems);
+    } else {
+      // Multi-gem View matching Reference Images 2, 3, 4
+      this.gemSingleWrap.classList.add('hidden');
+      this.gemMultiWrap.classList.remove('hidden');
+
+      if (this.gemBadgeBlue) {
+        this.gemBadgeBlue.style.display = goals.blue > 0 ? 'flex' : 'none';
+        this.gemCountBlueEl.textContent = String(Math.max(0, goals.blue));
+      }
+      if (this.gemBadgeOrange) {
+        this.gemBadgeOrange.style.display = goals.orange > 0 ? 'flex' : 'none';
+        this.gemCountOrangeEl.textContent = String(Math.max(0, goals.orange));
+      }
+      if (this.gemBadgeStar) {
+        this.gemBadgeStar.style.display = goals.star > 0 ? 'flex' : 'none';
+        this.gemCountStarEl.textContent = String(Math.max(0, goals.star));
+      }
+    }
   }
 
   startNewGame(presetBoard = null) {
@@ -275,7 +345,6 @@ export class BlockBlasterGame {
     this.saveGameState();
   }
 
-  // Save current game state to localStorage
   saveGameState() {
     if (this.isGameOver) return;
 
@@ -295,7 +364,8 @@ export class BlockBlasterGame {
         level: this.currentLevelNum,
         board: this.board,
         score: this.score,
-        objectiveProgress: this.objectiveProgress,
+        adventureGems: this.adventureGems,
+        adventureTotalGems: this.adventureTotalGems,
         currentPieces: this.currentPieces
       };
       localStorage.setItem('block_blaster_save_adventure', JSON.stringify(state));
@@ -332,7 +402,7 @@ export class BlockBlasterGame {
           if (typeof val === 'string') {
             cell.classList.add(val);
           } else if (typeof val === 'object') {
-            cell.classList.add(val.color || 'color-cyan');
+            cell.classList.add(val.color || 'color-gold');
             if (val.hasDiamond) {
               cell.classList.add('has-diamond');
               if (val.diamondType) cell.classList.add(val.diamondType);
@@ -391,42 +461,36 @@ export class BlockBlasterGame {
     if (this.scoreHeroEl) this.scoreHeroEl.textContent = this.score;
     if (this.bestScoreDisplayEl) this.bestScoreDisplayEl.textContent = this.bestScore;
 
-    if (this.mode === 'adventure' && this.levelObjective) {
-      if (this.levelObjective.type === 'score') {
-        this.objectiveProgress = this.score;
-        this.updateScoreTargetUI();
-        if (this.score >= this.levelObjective.target) {
-          this.triggerLevelWin();
-        }
-      }
+    if (this.mode === 'adventure' && this.adventureTotalGems <= 0) {
+      this.triggerLevelWin();
     }
   }
 
-  updateScoreTargetUI() {
-    if (!this.levelObjective) return;
-    const target = this.levelObjective.target;
-    const current = this.score;
-    if (this.adventureCurrentScoreEl) this.adventureCurrentScoreEl.textContent = current;
-    if (this.adventureTargetScoreEl) this.adventureTargetScoreEl.textContent = target;
-
-    const pct = Math.min(100, Math.round((current / target) * 100));
-    if (this.adventureTargetFillEl) this.adventureTargetFillEl.style.width = `${pct}%`;
-  }
-
   updateGemsUI() {
-    if (this.gemCountBlueEl) this.gemCountBlueEl.textContent = Math.max(0, this.adventureGems.blue);
-    if (this.gemCountOrangeEl) this.gemCountOrangeEl.textContent = Math.max(0, this.adventureGems.orange);
-    if (this.gemCountStarEl) this.gemCountStarEl.textContent = Math.max(0, this.adventureGems.star);
+    this.adventureTotalGems = Math.max(0, this.adventureGems.blue + this.adventureGems.orange + this.adventureGems.star);
 
-    if (this.adventureGems.blue <= 0 && this.adventureGems.orange <= 0 && this.adventureGems.star <= 0) {
+    if (this.gemCountSingle) {
+      this.gemCountSingle.textContent = String(this.adventureTotalGems);
+    }
+    if (this.gemCountBlueEl) {
+      this.gemCountBlueEl.textContent = String(Math.max(0, this.adventureGems.blue));
+    }
+    if (this.gemCountOrangeEl) {
+      this.gemCountOrangeEl.textContent = String(Math.max(0, this.adventureGems.orange));
+    }
+    if (this.gemCountStarEl) {
+      this.gemCountStarEl.textContent = String(Math.max(0, this.adventureGems.star));
+    }
+
+    if (this.adventureTotalGems <= 0) {
       this.triggerLevelWin();
     }
   }
 
   updateComboUI() {
-    if (this.combo >= 1) {
+    if (this.combo >= 2) {
       this.comboBadgeEl.classList.remove('hidden');
-      this.comboTextEl.textContent = `COMBO x${this.combo}`;
+      this.comboTextEl.textContent = `COMBO ${this.combo}`;
     } else {
       this.comboBadgeEl.classList.add('hidden');
     }
@@ -437,6 +501,7 @@ export class BlockBlasterGame {
     if (this.score > this.bestScore) {
       this.bestScore = this.score;
       localStorage.setItem('block_blaster_best', String(this.bestScore));
+      localStorage.setItem('bb_stat_best_score', String(this.bestScore));
     }
     this.updateScoreUI();
     this.saveGameState();
@@ -451,7 +516,7 @@ export class BlockBlasterGame {
     floater.className = `score-floater ${isCombo ? 'combo-floater' : ''}`;
     floater.textContent = text;
 
-    const boardRect = this.boardEl.getBoundingClientRect();
+    const boardRect = this.cachedBoardRect || this.boardEl.getBoundingClientRect();
     const relX = Math.max(20, Math.min(boardRect.width - 20, x - boardRect.left));
     const relY = Math.max(20, Math.min(boardRect.height - 20, y - boardRect.top));
 
@@ -464,25 +529,9 @@ export class BlockBlasterGame {
     }, 850);
   }
 
-  // --- 5. Dynamic Theme Switching on Board Clear ---
+  // --- 5. Theme Switching on Perfect Clear ---
   applyTheme(themeName) {
     document.body.className = themeName;
-
-    // Update Score Backdrop Motif based on active theme
-    if (this.scoreMotifEl) {
-      this.scoreMotifEl.className = 'score-motif';
-      if (themeName === 'theme-pink' || themeName === 'theme-purple') {
-        this.scoreMotifEl.classList.add('motif-heart');
-      } else if (themeName === 'theme-slate') {
-        this.scoreMotifEl.classList.add('motif-diamond');
-      } else if (themeName === 'theme-knit') {
-        this.scoreMotifEl.classList.add('motif-knit');
-      } else if (themeName === 'theme-egg') {
-        this.scoreMotifEl.classList.add('motif-egg');
-      } else {
-        this.scoreMotifEl.classList.add('motif-heart');
-      }
-    }
   }
 
   switchNextTheme() {
@@ -490,7 +539,6 @@ export class BlockBlasterGame {
     const nextTheme = this.themes[this.currentThemeIndex];
     this.applyTheme(nextTheme);
 
-    // Display banner
     if (this.allClearBannerEl) {
       this.allClearBannerEl.classList.remove('hidden');
       setTimeout(() => {
@@ -502,8 +550,7 @@ export class BlockBlasterGame {
   handlePerfectClear() {
     this.addScore(1000, null, true, '🌟 ALL CLEAR! +1000');
     sound.playComboFanfare();
-
-    // Switch theme dynamically! (Confetti removed per prompt requirement)
+    medalManager.recordAllClear();
     this.switchNextTheme();
   }
 
@@ -523,10 +570,11 @@ export class BlockBlasterGame {
     }
 
     sound.playDrop();
+    medalManager.recordPiecePlaced();
     this.renderBoard();
 
-    // Score points
-    const boardRect = this.boardEl.getBoundingClientRect();
+    // Score placement points
+    const boardRect = this.cachedBoardRect || this.boardEl.getBoundingClientRect();
     const placementPos = {
       x: boardRect.left + (startC + cols / 2) * (boardRect.width / this.boardSize),
       y: boardRect.top + (startR + rows / 2) * (boardRect.height / this.boardSize)
@@ -579,6 +627,7 @@ export class BlockBlasterGame {
     if (totalLines > 0) {
       this.combo += 1;
       this.updateComboUI();
+      medalManager.recordLinesCleared(totalLines);
 
       sound.playClear(this.combo);
       if (this.combo >= 3) {
@@ -608,12 +657,23 @@ export class BlockBlasterGame {
         for (let r = 0; r < this.boardSize; r++) inspectCell(r, c);
       });
 
-      // Update Adventure gem objectives if applicable
-      if (this.mode === 'adventure' && this.levelObjective && this.levelObjective.type === 'diamonds') {
-        this.adventureGems.blue -= blueBlasted;
-        this.adventureGems.orange -= orangeBlasted;
-        this.adventureGems.star -= starBlasted;
-        this.updateGemsUI();
+      // Update Adventure gem objectives
+      if (this.mode === 'adventure') {
+        const totalBlasted = blueBlasted + orangeBlasted + starBlasted;
+        if (this.adventureGems.blue > 0) {
+          this.adventureGems.blue = Math.max(0, this.adventureGems.blue - blueBlasted);
+        }
+        if (this.adventureGems.orange > 0) {
+          this.adventureGems.orange = Math.max(0, this.adventureGems.orange - orangeBlasted);
+        }
+        if (this.adventureGems.star > 0) {
+          this.adventureGems.star = Math.max(0, this.adventureGems.star - starBlasted);
+        }
+
+        // If level has single objective count (e.g. 90), deduct blasted gems
+        if (this.adventureTotalGems > 0 && totalBlasted > 0) {
+          this.updateGemsUI();
+        }
       }
 
       // Animate clearing cells
@@ -630,7 +690,7 @@ export class BlockBlasterGame {
       const comboBonus = (this.combo - 1) * 80;
       const totalPoints = basePoints + multiBonus + comboBonus;
 
-      const boardRect = this.boardEl.getBoundingClientRect();
+      const boardRect = this.cachedBoardRect || this.boardEl.getBoundingClientRect();
       const centerPos = {
         x: boardRect.left + boardRect.width / 2,
         y: boardRect.top + boardRect.height / 2
@@ -654,14 +714,14 @@ export class BlockBlasterGame {
 
         this.saveGameState();
         this.checkGameOver();
-      }, 350);
+      }, 320);
     } else {
       this.combo = 0;
       this.updateComboUI();
     }
   }
 
-  // --- 7. Adventure 96-Level Silhouette Map ---
+  // --- 7. Adventure Progression & Map ---
   setupAdventureMap() {
     if (!this.adventureSilhouetteGrid) return;
     this.adventureSilhouetteGrid.innerHTML = '';
@@ -713,10 +773,14 @@ export class BlockBlasterGame {
   triggerLevelWin() {
     this.clearSavedGameState('adventure');
     adventure.completeLevel(this.currentLevelNum, this.score);
+    medalManager.recordLevelCompleted(this.currentLevelNum);
     sound.playComboFanfare();
-
-    // Confetti on Adventure Level Complete
     fireVictoryCelebration();
+
+    const streakEl = document.getElementById('win-streak-count');
+    if (streakEl) streakEl.textContent = `×${this.currentLevelNum}`;
+
+    this.updateHomeUI();
 
     setTimeout(() => {
       if (this.levelWinModal) {
@@ -742,12 +806,10 @@ export class BlockBlasterGame {
     medalManager.recordRound(this.score, this.combo);
     this.clearSavedGameState();
 
-    // Confetti effect ONLY on Classic game over
     if (this.mode === 'classic') {
       fireVictoryCelebration();
     }
 
-    // Populate Game Over screen
     this.deathFinalScoreEl.textContent = this.score;
     this.deathBestScoreEl.textContent = this.bestScore;
 
@@ -758,7 +820,6 @@ export class BlockBlasterGame {
       this.deathNewRecordEl.classList.add('hidden');
     }
 
-    // Start 5-second countdown timer before Retry option unlocks
     this.startDeathCountdown();
 
     setTimeout(() => {
@@ -774,7 +835,6 @@ export class BlockBlasterGame {
     this.deathTimerNumEl.textContent = '5';
     this.deathTimerSecTextEl.textContent = '5s';
 
-    // Lock Retry button during countdown
     this.deathRestartBtn.classList.add('locked');
     this.deathRestartBtn.disabled = true;
 
@@ -788,7 +848,6 @@ export class BlockBlasterGame {
         this.countdownTimer = null;
         this.deathCountdownBox.classList.add('hidden');
 
-        // Unlock Retry button
         this.deathRestartBtn.classList.remove('locked');
         this.deathRestartBtn.disabled = false;
         sound.playClick();
@@ -824,7 +883,9 @@ export class BlockBlasterGame {
       map: '🗺️'
     };
 
-    AWARDS_LIST.forEach(award => {
+    const awards = medalManager.getAwardsList(this.bestScore);
+
+    awards.forEach(award => {
       const item = document.createElement('div');
       item.className = 'medal-item';
 
@@ -841,7 +902,6 @@ export class BlockBlasterGame {
 
       badgeWrap.appendChild(octMedal);
 
-      // Gold ribbon tails
       if (award.tier === 'gold') {
         const tails = document.createElement('div');
         tails.className = 'gold-ribbon-tails';
@@ -849,7 +909,6 @@ export class BlockBlasterGame {
         badgeWrap.appendChild(tails);
       }
 
-      // Red notification dot
       if (award.hasRedDot) {
         const dot = document.createElement('div');
         dot.className = 'medal-red-dot';
@@ -880,16 +939,27 @@ export class BlockBlasterGame {
       this.startClassicMode();
     });
 
+    // Adventure Button launches current level directly!
     document.getElementById('btn-mode-adventure').addEventListener('click', () => {
       sound.playClick();
-      this.selectedLevelOnMap = adventure.unlockedLevel;
-      this.setupAdventureMap();
-      this.showScreen('screen-adventure-map');
+      const targetLvl = adventure.getCurrentLevel();
+      this.startAdventureLevel(targetLvl);
     });
+
+    const moreGamesBtn = document.getElementById('btn-mode-moregames');
+    if (moreGamesBtn) {
+      moreGamesBtn.addEventListener('click', () => {
+        sound.playClick();
+        this.selectedLevelOnMap = adventure.unlockedLevel;
+        this.setupAdventureMap();
+        this.showScreen('screen-adventure-map');
+      });
+    }
 
     // Adventure Map Navigation
     document.getElementById('map-back-btn').addEventListener('click', () => {
       sound.playClick();
+      this.updateHomeUI();
       this.showScreen('screen-home');
     });
 
@@ -904,45 +974,66 @@ export class BlockBlasterGame {
       this.showScreen('screen-home');
     });
 
-    // In-Game Back & Settings Buttons
+    // In-Game Back Button
     document.getElementById('game-back-btn').addEventListener('click', () => {
       sound.playClick();
       this.saveGameState();
-      if (this.mode === 'adventure') {
-        this.showScreen('screen-adventure-map');
-      } else {
-        this.showScreen('screen-home');
-      }
+      this.updateHomeUI();
+      this.showScreen('screen-home');
     });
 
-    const openSettings = () => {
+    // Settings Opened from Home
+    document.getElementById('home-settings-btn').addEventListener('click', () => {
       sound.playClick();
+      // Exit button is HIDDEN in home page setting!
+      if (this.settingsExitHomeBtn) {
+        this.settingsExitHomeBtn.classList.add('hidden');
+      }
       this.settingsModal.classList.remove('hidden');
       this.soundToggleBtn.classList.toggle('muted', sound.isMuted);
-    };
+    });
 
-    document.getElementById('game-settings-btn').addEventListener('click', openSettings);
-    document.getElementById('home-settings-btn').addEventListener('click', openSettings);
+    // Settings Opened In-Game (while playing)
+    document.getElementById('game-settings-btn').addEventListener('click', () => {
+      sound.playClick();
+      // Exit button is SHOWN in in-game setting!
+      if (this.settingsExitHomeBtn) {
+        this.settingsExitHomeBtn.classList.remove('hidden');
+      }
+      this.settingsModal.classList.remove('hidden');
+      this.soundToggleBtn.classList.toggle('muted', sound.isMuted);
+    });
+
+    // Settings Exit to Home Button Action
+    if (this.settingsExitHomeBtn) {
+      this.settingsExitHomeBtn.addEventListener('click', () => {
+        sound.playClick();
+        this.saveGameState();
+        this.settingsModal.classList.add('hidden');
+        this.updateHomeUI();
+        this.showScreen('screen-home');
+      });
+    }
 
     document.getElementById('settings-close-btn').addEventListener('click', () => {
       sound.playClick();
       this.settingsModal.classList.add('hidden');
     });
 
-    // Sound Toggle (White Icon + Red Slash Line when muted)
+    // Sound Toggle
     this.soundToggleBtn.addEventListener('click', () => {
       const isMuted = sound.toggleMute();
       this.soundToggleBtn.classList.toggle('muted', isMuted);
       sound.playClick();
     });
 
-    // BGM Toggle (White Icon + Red Slash Line when muted)
+    // BGM Toggle
     this.bgmToggleBtn.addEventListener('click', () => {
       sound.playClick();
       this.bgmToggleBtn.classList.toggle('muted');
     });
 
-    // Medal Button in Settings -> Opens Achievement Screen
+    // Medal Button in Settings
     document.getElementById('settings-medal-btn').addEventListener('click', () => {
       sound.playClick();
       this.settingsModal.classList.add('hidden');
@@ -950,7 +1041,7 @@ export class BlockBlasterGame {
       this.showScreen('screen-achievement');
     });
 
-    // More Settings Button in Settings -> Opens More Settings Modal
+    // More Settings Button
     document.getElementById('settings-more-btn').addEventListener('click', () => {
       sound.playClick();
       this.settingsModal.classList.add('hidden');
@@ -962,7 +1053,7 @@ export class BlockBlasterGame {
       this.moreSettingsModal.classList.add('hidden');
     });
 
-    // More Settings Menu: Contact Us
+    // More Settings Sub-modals
     document.getElementById('menu-contact-us-btn').addEventListener('click', () => {
       sound.playClick();
       this.contactModal.classList.remove('hidden');
@@ -987,7 +1078,6 @@ export class BlockBlasterGame {
       });
     }
 
-    // More Settings Menu: Share with Friends
     document.getElementById('menu-share-btn').addEventListener('click', () => {
       sound.playClick();
       if (navigator.share) {
@@ -1003,7 +1093,6 @@ export class BlockBlasterGame {
       }
     });
 
-    // More Settings Menu: Terms of Service
     document.getElementById('menu-terms-btn').addEventListener('click', () => {
       sound.playClick();
       this.termsModal.classList.remove('hidden');
@@ -1019,7 +1108,6 @@ export class BlockBlasterGame {
       this.termsModal.classList.add('hidden');
     });
 
-    // More Settings Menu: Privacy Policy
     document.getElementById('menu-privacy-btn').addEventListener('click', () => {
       sound.playClick();
       this.privacyModal.classList.remove('hidden');
@@ -1035,7 +1123,6 @@ export class BlockBlasterGame {
       this.privacyModal.classList.add('hidden');
     });
 
-    // More Settings Menu: About Us (Only accessed from More Settings)
     document.getElementById('menu-about-btn').addEventListener('click', () => {
       sound.playClick();
       this.aboutModal.classList.remove('hidden');
@@ -1064,6 +1151,7 @@ export class BlockBlasterGame {
 
     this.deathHomeBtn.addEventListener('click', () => {
       sound.playClick();
+      this.updateHomeUI();
       this.showScreen('screen-home');
     });
 
@@ -1071,8 +1159,9 @@ export class BlockBlasterGame {
     document.getElementById('win-next-btn').addEventListener('click', () => {
       sound.playClick();
       this.levelWinModal.classList.add('hidden');
-      if (this.currentLevelNum < 96) {
-        this.startAdventureLevel(this.currentLevelNum + 1);
+      const nextLvl = this.currentLevelNum + 1;
+      if (nextLvl <= 96) {
+        this.startAdventureLevel(nextLvl);
       } else {
         this.showScreen('screen-adventure-map');
       }
@@ -1081,6 +1170,7 @@ export class BlockBlasterGame {
     document.getElementById('win-map-btn').addEventListener('click', () => {
       sound.playClick();
       this.levelWinModal.classList.add('hidden');
+      this.selectedLevelOnMap = adventure.unlockedLevel;
       this.setupAdventureMap();
       this.showScreen('screen-adventure-map');
     });
@@ -1100,7 +1190,7 @@ export class BlockBlasterGame {
 
   // --- 11. Interaction & Smooth 60fps Drag Handling ---
   handleTrayClick(e, slotIndex) {
-    if (this.activeDrag) return;
+    if (this.activeDrag && this.activeDrag.isDragging) return;
     const piece = this.currentPieces[slotIndex];
     if (!piece) return;
 
@@ -1139,6 +1229,12 @@ export class BlockBlasterGame {
     if (!piece || this.isGameOver) return;
 
     e.preventDefault();
+    this.updateBoardDimensions();
+
+    const slot = this.traySlots[slotIndex];
+    try {
+      slot.setPointerCapture(e.pointerId);
+    } catch (err) {}
 
     this.activeDrag = {
       slotIndex,
@@ -1160,17 +1256,18 @@ export class BlockBlasterGame {
     const dx = e.clientX - drag.startX;
     const dy = e.clientY - drag.startY;
 
-    if (!drag.isDragging && Math.hypot(dx, dy) > 5) {
+    if (!drag.isDragging && Math.hypot(dx, dy) > 4) {
       drag.isDragging = true;
       this.selectedSlotIndex = null;
       this.traySlots.forEach(s => s.classList.remove('selected'));
-      this.traySlots[drag.slotIndex].style.opacity = '0.25';
+      this.traySlots[drag.slotIndex].style.opacity = '0.2';
       this.createDragAvatar(drag.piece);
     }
 
     if (drag.isDragging) {
       e.preventDefault();
-      const touchOffsetY = drag.isTouch ? -60 : 0;
+      // On touch devices, lift piece above finger so player sees exact drop position!
+      const touchOffsetY = drag.isTouch ? -70 : 0;
       const posX = e.clientX;
       const posY = e.clientY + touchOffsetY;
 
@@ -1192,10 +1289,15 @@ export class BlockBlasterGame {
     if (!this.activeDrag) return;
 
     const drag = this.activeDrag;
-    this.traySlots[drag.slotIndex].style.opacity = '1';
+    const slot = this.traySlots[drag.slotIndex];
+    slot.style.opacity = '1';
+
+    try {
+      slot.releasePointerCapture(drag.pointerId);
+    } catch (err) {}
 
     if (drag.isDragging) {
-      const touchOffsetY = drag.isTouch ? -60 : 0;
+      const touchOffsetY = drag.isTouch ? -70 : 0;
       const posX = e.clientX;
       const posY = e.clientY + touchOffsetY;
 
@@ -1210,14 +1312,19 @@ export class BlockBlasterGame {
     }
 
     this.activeDrag = null;
+    this.lastGhostCoords = null;
   }
 
   handleGlobalPointerCancel() {
     if (this.activeDrag) {
       this.traySlots[this.activeDrag.slotIndex].style.opacity = '1';
+      try {
+        this.traySlots[this.activeDrag.slotIndex].releasePointerCapture(this.activeDrag.pointerId);
+      } catch (err) {}
       this.clearDragAvatar();
       this.clearGhostHighlights();
       this.activeDrag = null;
+      this.lastGhostCoords = null;
     }
   }
 
@@ -1253,25 +1360,25 @@ export class BlockBlasterGame {
   }
 
   calculateBoardGridCoords(x, y, piece) {
-    const boardRect = this.boardEl.getBoundingClientRect();
+    const boardRect = this.cachedBoardRect || this.boardEl.getBoundingClientRect();
     if (
-      x < boardRect.left - 40 ||
-      x > boardRect.right + 40 ||
-      y < boardRect.top - 40 ||
-      y > boardRect.bottom + 40
+      x < boardRect.left - 50 ||
+      x > boardRect.right + 50 ||
+      y < boardRect.top - 50 ||
+      y > boardRect.bottom + 50
     ) {
       return null;
     }
 
-    const padding = 6;
+    const padding = 8;
     const innerWidth = boardRect.width - padding * 2;
-    const cellSize = innerWidth / this.boardSize;
+    const cellSize = (innerWidth - 7 * 4) / this.boardSize;
 
     const rows = piece.matrix.length;
     const cols = piece.matrix[0].length;
 
-    const piecePixelW = cols * cellSize;
-    const piecePixelH = rows * cellSize;
+    const piecePixelW = cols * (cellSize + 4);
+    const piecePixelH = rows * (cellSize + 4);
 
     const pieceTopLeftX = x - piecePixelW / 2;
     const pieceTopLeftY = y - piecePixelH / 2;
@@ -1279,8 +1386,8 @@ export class BlockBlasterGame {
     const relX = pieceTopLeftX - (boardRect.left + padding);
     const relY = pieceTopLeftY - (boardRect.top + padding);
 
-    const c = Math.round(relX / cellSize);
-    const r = Math.round(relY / cellSize);
+    const c = Math.round(relX / (cellSize + 4));
+    const r = Math.round(relY / (cellSize + 4));
 
     if (r >= 0 && r + rows <= this.boardSize && c >= 0 && c + cols <= this.boardSize) {
       return { r, c };
@@ -1289,9 +1396,22 @@ export class BlockBlasterGame {
   }
 
   updateBoardGhost(x, y, piece) {
-    this.clearGhostHighlights();
     const coords = this.calculateBoardGridCoords(x, y, piece);
-    if (!coords) return;
+
+    if (!coords) {
+      if (this.lastGhostCoords) {
+        this.clearGhostHighlights();
+        this.lastGhostCoords = null;
+      }
+      return;
+    }
+
+    if (this.lastGhostCoords && this.lastGhostCoords.r === coords.r && this.lastGhostCoords.c === coords.c) {
+      return;
+    }
+
+    this.clearGhostHighlights();
+    this.lastGhostCoords = coords;
 
     const { r, c } = coords;
     const isValid = canFitAt(this.board, piece.matrix, r, c, this.boardSize);

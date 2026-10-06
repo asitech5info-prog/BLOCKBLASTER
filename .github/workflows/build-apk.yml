@@ -66,13 +66,15 @@ jobs:
         run: |
           gh release delete v1.0.1 --yes || true
           gh release create v1.0.1 BlockBlaster-v1.0.1.apk \
-            --title "Block Blaster v1.0.1" \
-            --notes "### Block Blaster v1.0.1 Release
-          - Authentic score presenter & dynamic themes on board clear
-          - 5-second countdown timer on game over before retry unlocks
-          - State persistence (resume exact game where left off)
-          - Full-screen Adventure mode with 96-level silhouette
-          - Achievements & Octagonal Medals
-          - More Settings with Contact Us (asitech5info@gmail.com) & Privacy Policy
-          - Added 2x3, 3x2, and 3x3 blocks" || true
-
+            --title "Block Blaster v1.0.1 (Fixed)" \
+            --notes "### Block Blaster v1.0.1 (Fixed)
+          - Full-screen immersion optimized for Pixel 8 & all device dimensions
+          - Smooth 60fps drag & drop with accurate placement & zero lag
+          - High score starts at 0 and grows dynamically by playing
+          - Dynamic Medals and Milestone system with real goals
+          - Adventure mode level saving persistence (Level 1 -> Level 2 auto progression)
+          - Authentic UI matching reference screenshots (Royal Blue theme, 3D Block Blast logo)
+          - White location pin logo for Adventure, white infinity logo for Classic
+          - In-game settings includes Exit to Home button (hidden in home settings)
+          - Crystal-clear, razor-sharp app icon across all Android mipmap resolutions
+          - 96-level silhouette adventure map & handcrafted gem puzzles" || true

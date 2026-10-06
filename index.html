@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="theme-color" content="#1a56db" />
+    <meta name="theme-color" content="#1e5ee6" />
     <meta name="description" content="Block Blaster - Addictive Block Puzzle Game with Classic & Adventure Modes" />
     <title>Block Blaster</title>
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700;800&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/src/style.css" />
   </head>
-  <body class="theme-teal">
+  <body class="theme-blue">
     <div id="app" class="game-wrapper">
 
       <!-- ================= 1. LOADING SCREEN ================= -->
@@ -33,7 +33,7 @@
               <span class="bubble-letter letter-c">C</span>
               <span class="bubble-letter letter-k">K</span>
             </div>
-            <div class="bubble-word blast-word">BLASTER</div>
+            <div class="bubble-word blast-word">BLAST</div>
             <div class="logo-subtitle">ADVENTURE MASTER</div>
           </div>
 
@@ -46,11 +46,11 @@
         </div>
       </section>
 
-      <!-- ================= 2. HOMEPAGE SCREEN ================= -->
+      <!-- ================= 2. HOMEPAGE SCREEN (Matching WhatsApp Image 2026-10-05 at 10.22.43 AM.jpeg) ================= -->
       <section id="screen-home" class="screen screen-home hidden">
         <header class="home-topbar">
           <div class="topbar-spacer"></div>
-          <!-- Settings Icon: Crisp White -->
+          <!-- Settings Icon: Crisp White Gear -->
           <button id="home-settings-btn" class="gear-btn white-btn" aria-label="Settings" title="Settings">
             <svg class="gear-svg" viewBox="0 0 24 24" width="28" height="28" fill="#ffffff">
               <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
@@ -71,33 +71,77 @@
               <span class="bubble-letter letter-c">C</span>
               <span class="bubble-letter letter-k">K</span>
             </div>
-            <div class="bubble-word blast-word">BLASTER</div>
+            <div class="bubble-word blast-word">BLAST</div>
             <div class="logo-subtitle">ADVENTURE MASTER</div>
-          </div>
-
-          <!-- Daily Streak Banner matching Reference Picture -->
-          <div class="daily-streak-pill">
-            <div class="streak-crown-icon">👑</div>
-            <span class="streak-label">Daily Streak</span>
-            <span id="daily-streak-num" class="streak-num">1</span>
           </div>
         </div>
 
-        <!-- Mode Buttons (Adventure & Classic) -->
+        <!-- Mode Buttons Container matching Reference Picture -->
         <div class="home-menu-actions">
-          <button id="btn-mode-adventure" class="menu-pill-btn btn-adventure" data-testid="btn-adventure">
-            <span class="pill-icon">📍</span>
-            <span class="pill-text">Adventure</span>
+          <!-- Button 1: Adventure / Level Button with White Location Logo and Win Badge -->
+          <div class="adventure-btn-wrapper">
+            <div id="home-win-badge" class="home-win-badge">
+              <span class="badge-crown">👑</span>
+              <span>Win: </span>
+              <strong id="home-win-streak-num">1</strong>
+            </div>
+            <button id="btn-mode-adventure" class="menu-pill-btn btn-adventure" data-testid="btn-adventure">
+              <!-- Crisp White Location Logo as requested -->
+              <div class="pill-icon-svg-wrap">
+                <svg class="pill-svg-icon" viewBox="0 0 24 24" width="30" height="30" fill="#ffffff">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+              </div>
+              <div class="pill-content-stack">
+                <span id="home-adventure-level-text" class="pill-text-large">Level 1</span>
+                <div class="pill-progress-track">
+                  <div id="home-adventure-progress-fill" class="pill-progress-fill" style="width: 25%"></div>
+                  <span id="home-adventure-pct-text" class="pill-progress-text">25%</span>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          <!-- Button 2: Classic Mode with White Infinity Logo -->
+          <button id="btn-mode-classic" class="menu-pill-btn btn-classic" data-testid="btn-classic">
+            <!-- Crisp White Infinity Logo as requested -->
+            <div class="pill-icon-svg-wrap">
+              <svg class="pill-svg-icon" viewBox="0 0 24 24" width="32" height="32" fill="#ffffff">
+                <path d="M18.6 6.62c-1.44 0-2.8.56-3.77 1.58L12 11.17l-2.83-2.97A5.36 5.36 0 0 0 5.4 6.62C2.42 6.62 0 9.04 0 12.02s2.42 5.4 5.4 5.4c1.44 0 2.8-.56 3.77-1.58L12 12.87l2.83 2.97c.97 1.02 2.33 1.58 3.77 1.58 2.98 0 5.4-2.42 5.4-5.4s-2.42-5.4-5.4-5.4zm-13.2 8.4c-1.66 0-3-1.34-3-3s1.34-3 3-3c.8 0 1.57.31 2.12.87L9.44 12l-1.92 2.02A2.99 2.99 0 0 1 5.4 15.02zm13.2 0c-.8 0-1.57-.31-2.12-.87L14.56 12l1.92-2.02c.55-.56 1.32-.87 2.12-.87 1.66 0 3 1.34 3 3s-1.34 3-3 3z"/>
+              </svg>
+            </div>
+            <span class="pill-text-large">Classic</span>
           </button>
 
-          <button id="btn-mode-classic" class="menu-pill-btn btn-classic" data-testid="btn-classic">
-            <span class="pill-icon">♾️</span>
-            <span class="pill-text">Classic</span>
+          <!-- Button 3: More Games Button (Magenta Pill matching Reference Screenshot) -->
+          <button id="btn-mode-moregames" class="menu-pill-btn btn-moregames">
+            <div class="pill-icon-svg-wrap">
+              <svg class="pill-svg-icon" viewBox="0 0 24 24" width="30" height="30" fill="#ffffff">
+                <path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H9v2H7v-2H5v-2h2V9h2v2h2v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3-3c-.83 0-1.5-.67-1.5-1.5S17.67 9 18.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+              </svg>
+            </div>
+            <span class="pill-text-large">More Games</span>
           </button>
+        </div>
+
+        <!-- Bottom Promo Mini Badges (Matching Reference Screenshot) -->
+        <div class="home-footer-promos">
+          <div class="promo-item" id="promo-gogo">
+            <div class="promo-circle-icon promo-maze">
+              <span class="promo-art">🌀</span>
+            </div>
+            <span class="promo-title">GOGO! Blast</span>
+          </div>
+          <div class="promo-item" id="promo-rings">
+            <div class="promo-circle-icon promo-rings-art">
+              <span class="promo-art">💫</span>
+            </div>
+            <span class="promo-title">Rotate Rings</span>
+          </div>
         </div>
       </section>
 
-      <!-- ================= 3. ADVENTURE MAP SCREEN (Full Screen & 96-Level Silhouette) ================= -->
+      <!-- ================= 3. ADVENTURE MAP SCREEN (Full Screen 96-Level Silhouette) ================= -->
       <section id="screen-adventure-map" class="screen screen-adventure-map hidden">
         <header class="map-topbar">
           <button id="map-back-btn" class="back-nav-btn" aria-label="Back">
@@ -107,7 +151,7 @@
           <div class="topbar-spacer"></div>
         </header>
 
-        <!-- Trophy Header matching Reference Picture -->
+        <!-- Trophy Header -->
         <div class="adventure-trophy-card">
           <div class="trophy-silhouette-icon">🏆</div>
           <p class="trophy-tagline">Take part in the Adventure<br/>and win the trophy.</p>
@@ -139,30 +183,30 @@
         </header>
 
         <div class="achievement-scroll-body">
-          <!-- Statistics Section (4 Cards) -->
+          <!-- Statistics Section (4 Cards - Starting at 0) -->
           <div class="achievement-section">
             <h2 class="achievement-sec-title">Statistics</h2>
             <div class="stats-2x2-grid">
               <div class="stat-card">
-                <span id="stat-highest-combo" class="stat-number">70</span>
+                <span id="stat-highest-combo" class="stat-number">0</span>
                 <span class="stat-label">Highest Combo</span>
               </div>
               <div class="stat-card">
-                <span id="stat-best-score" class="stat-number">423506</span>
+                <span id="stat-best-score" class="stat-number">0</span>
                 <span class="stat-label">Best Score</span>
               </div>
               <div class="stat-card">
-                <span id="stat-rounds" class="stat-number">255</span>
+                <span id="stat-rounds" class="stat-number">0</span>
                 <span class="stat-label">Rounds</span>
               </div>
               <div class="stat-card">
-                <span id="stat-login-days" class="stat-number">61</span>
+                <span id="stat-login-days" class="stat-number">1</span>
                 <span class="stat-label">Login Days</span>
               </div>
             </div>
           </div>
 
-          <!-- Awards Section (Octagonal Medals) -->
+          <!-- Awards Section (Octagonal Medals with Real Goals) -->
           <div class="achievement-section awards-section">
             <h2 class="achievement-sec-title">Awards</h2>
             <div id="medals-grid" class="medals-grid">
@@ -176,12 +220,37 @@
       <section id="screen-gameplay" class="screen screen-gameplay hidden">
         <!-- Top HUD -->
         <header class="gameplay-header">
-          <!-- Back button or mode tag -->
+          <!-- Back button to Home or Map -->
           <button id="game-back-btn" class="icon-btn-game white-btn" aria-label="Exit Game">
             <span class="nav-arrow">‹</span>
           </button>
 
-          <!-- Adventure Score Level Pill Target HUD (Image 4.06.43 AM (2).jpeg) -->
+          <!-- Adventure Gems Objective HUD (WhatsApp Images 2026-10-05 at 10.22.09 AM to 10.22.10 AM) -->
+          <div id="adventure-gems-hud" class="gems-hud hidden">
+            <!-- Single diamond objective container (e.g. Level 1: 90 gems) -->
+            <div id="gem-single-wrap" class="gem-single-wrap hidden">
+              <div class="gem-diamond-icon"></div>
+              <span id="gem-count-single" class="gem-single-number">90</span>
+            </div>
+
+            <!-- Multi-gem objectives container (e.g. Levels 2, 3, 4) -->
+            <div id="gem-multi-wrap" class="gem-multi-wrap">
+              <div class="gem-badge gem-blue-badge" id="gem-badge-blue">
+                <div class="gem-shape blue-gem"></div>
+                <span id="gem-count-blue" class="gem-val">0</span>
+              </div>
+              <div class="gem-badge gem-orange-badge" id="gem-badge-orange">
+                <div class="gem-shape orange-gem"></div>
+                <span id="gem-count-orange" class="gem-val">0</span>
+              </div>
+              <div class="gem-badge gem-star-badge" id="gem-badge-star">
+                <div class="gem-shape star-gem"></div>
+                <span id="gem-count-star" class="gem-val">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Adventure Score Target HUD (Legacy fallback) -->
           <div id="adventure-score-target-hud" class="score-target-hud hidden">
             <div class="target-hud-circle current-circle">
               <span id="adventure-current-score" class="hud-score-val">0</span>
@@ -190,51 +259,34 @@
               <div id="adventure-target-fill" class="target-hud-bar-fill"></div>
             </div>
             <div class="target-hud-circle target-circle">
-              <span id="adventure-target-score" class="hud-score-val">368</span>
+              <span id="adventure-target-score" class="hud-score-val">300</span>
             </div>
           </div>
 
-          <!-- Adventure Gem Objectives HUD (Image 4.06.41 AM (2).jpeg) -->
-          <div id="adventure-gems-hud" class="gems-hud hidden">
-            <div class="gem-badge gem-blue-badge">
-              <div class="gem-shape blue-gem"></div>
-              <span id="gem-count-blue" class="gem-val">22</span>
-            </div>
-            <div class="gem-badge gem-orange-badge">
-              <div class="gem-shape orange-gem"></div>
-              <span id="gem-count-orange" class="gem-val">20</span>
-            </div>
-            <div class="gem-badge gem-star-badge">
-              <div class="gem-shape star-gem"></div>
-              <span id="gem-count-star" class="gem-val">20</span>
-            </div>
-          </div>
-
-          <!-- Classic Mode Crown Best Score (Image 4.06.45 AM (1).jpeg) -->
+          <!-- Classic Mode Crown Best Score (Starts at 0!) -->
           <div id="classic-best-hud" class="classic-best-hud">
             <span class="crown-small">👑</span>
-            <span id="best-score-display" class="best-score-text">423506</span>
+            <span id="best-score-display" class="best-score-text">0</span>
           </div>
 
-          <!-- In-Game Settings Button: White Gear with optional NEW badge -->
+          <!-- In-Game Settings Button: White Gear -->
           <button id="game-settings-btn" class="gear-btn white-btn in-game-gear" aria-label="Settings">
             <svg class="gear-svg" viewBox="0 0 24 24" width="28" height="28" fill="#ffffff">
               <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
             </svg>
-            <span class="new-pill-badge">NEW</span>
           </button>
         </header>
 
-        <!-- Big Score Presenter with Themed Backdrop Motif (Heart, Diamond, Egg, etc.) -->
+        <!-- Big Score Presenter with Glowing Heart Aura (Matching Gameplay Video) -->
         <div class="score-hero">
           <div class="score-presenter-box">
             <div id="score-motif" class="score-motif motif-heart"></div>
             <div id="game-score-display" class="big-score-num">0</div>
           </div>
-          <!-- Combo Streak Badge -->
+          <!-- Dynamic Animated Combo Badge -->
           <div id="combo-badge" class="combo-badge hidden">
             <span class="combo-fire">🔥</span>
-            <span id="combo-text">COMBO x2</span>
+            <span id="combo-text">COMBO 2</span>
           </div>
         </div>
 
@@ -243,9 +295,9 @@
           🌟 PERFECT CLEAR! THEME CHANGED! 🌟
         </div>
 
-        <!-- 8x8 Board Container with Marquee Glow Bulbs -->
+        <!-- 8x8 Board Container (Clean Navy rounded card, NO yellow dotted border) -->
         <main class="board-container">
-          <div class="marquee-frame" id="marquee-frame">
+          <div class="board-frame" id="board-frame">
             <div id="game-board" class="board" data-testid="game-board">
               <!-- 64 cells generated by JS -->
             </div>
@@ -293,7 +345,6 @@
           </div>
 
           <div class="death-actions">
-            <!-- Retry button: disabled during 5s countdown, then activates with green pulse -->
             <div class="play-btn-wrapper">
               <span id="compliment-badge" class="compliment-badge">Good!</span>
               <button id="death-restart-btn" class="death-play-btn locked" data-testid="death-restart-btn" disabled>
@@ -308,17 +359,15 @@
         </div>
       </section>
 
-      <!-- ================= 7. LEVEL COMPLETE MODAL (Adventure - Image 4.06.42 AM (2).jpeg) ================= -->
+      <!-- ================= 7. LEVEL COMPLETE MODAL (Adventure) ================= -->
       <div id="level-win-modal" class="modal-overlay hidden">
         <div class="modal-card win-card">
-          <!-- Top Banner: Consecutive Victories -->
           <div class="win-banner-badge">
             <span class="crown-sm">👑</span>
             <span>Consecutive Victories</span>
-            <strong class="streak-win-mult">×1</strong>
+            <strong id="win-streak-count" class="streak-win-mult">×1</strong>
           </div>
 
-          <!-- Center Diamond Checkmark & Message -->
           <div class="win-celebration-center">
             <div class="win-diamond-badge">
               <div class="big-blue-diamond"></div>
@@ -334,7 +383,7 @@
         </div>
       </div>
 
-      <!-- ================= 8. SETTINGS MODAL (Image 4.06.45 AM.jpeg) ================= -->
+      <!-- ================= 8. SETTINGS MODAL (With In-Game Exit to Home Button!) ================= -->
       <div id="settings-modal" class="modal-overlay hidden" data-testid="settings-modal">
         <div class="modal-card settings-card">
           <div class="settings-header">
@@ -344,27 +393,21 @@
 
           <!-- Sound & BGM Toggle Buttons: White Icons with Red Slash Line when Pressed/Muted -->
           <div class="settings-audio-row">
-            <!-- Sound Toggle -->
             <button id="settings-sound-btn" class="audio-toggle-btn" aria-label="Toggle Sound">
               <div class="audio-icon-wrap" id="sound-icon-wrap">
-                <!-- White Speaker SVG -->
                 <svg class="audio-svg" viewBox="0 0 24 24" width="38" height="38" fill="#ffffff">
                   <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
                 </svg>
-                <!-- Red Diagonal Slash Line (shown when muted) -->
                 <div class="red-slash-line"></div>
               </div>
               <span class="audio-label">Sound</span>
             </button>
 
-            <!-- BGM Toggle -->
             <button id="settings-bgm-btn" class="audio-toggle-btn" aria-label="Toggle BGM">
               <div class="audio-icon-wrap" id="bgm-icon-wrap">
-                <!-- White Music Note SVG -->
                 <svg class="audio-svg" viewBox="0 0 24 24" width="38" height="38" fill="#ffffff">
                   <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
                 </svg>
-                <!-- Red Diagonal Slash Line (shown when muted) -->
                 <div class="red-slash-line"></div>
               </div>
               <span class="audio-label">BGM</span>
@@ -387,11 +430,19 @@
               </svg>
               <span>More Settings</span>
             </button>
+
+            <!-- Exit to Home button: ONLY VISIBLE WHEN OPENED DURING GAMEPLAY (Hidden in home settings) -->
+            <button id="settings-exit-home-btn" class="coral-pill-btn settings-big-btn exit-game-btn hidden">
+              <svg class="btn-svg-icon" viewBox="0 0 24 24" width="24" height="24" fill="#ffffff">
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+              </svg>
+              <span>Exit to Home</span>
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- ================= 9. MORE SETTINGS MODAL (Image 4.06.44 AM (2).jpeg) ================= -->
+      <!-- ================= 9. MORE SETTINGS MODAL ================= -->
       <div id="more-settings-modal" class="modal-overlay hidden" data-testid="more-settings-modal">
         <div class="modal-card more-settings-card">
           <div class="settings-header">
@@ -496,25 +547,15 @@
           </div>
           <div class="sub-scroll-body">
             <h3>🔒 Your Privacy Matters</h3>
-            <p>
-              Block Blaster is crafted to provide a safe, joyful puzzle gaming experience for players worldwide.
-            </p>
+            <p>Block Blaster is crafted to provide a safe, joyful puzzle gaming experience for players worldwide.</p>
             <h4>1. No Personal Data Stored</h4>
-            <p>
-              We do not collect personal identifiers, passwords, contacts, or financial details. Your game progress, high scores, and settings are saved locally on your device via standard local storage.
-            </p>
+            <p>We do not collect personal identifiers, passwords, contacts, or financial details. Your game progress, high scores, and settings are saved locally on your device via standard local storage.</p>
             <h4>2. Offline First</h4>
-            <p>
-              Block Blaster can be played offline anywhere without requiring an active internet connection.
-            </p>
+            <p>Block Blaster can be played offline anywhere without requiring an active internet connection.</p>
             <h4>3. Safe for All Ages</h4>
-            <p>
-              Our application adheres to universal safety guidelines, child privacy policies, and contains no intrusive user tracking.
-            </p>
+            <p>Our application adheres to universal safety guidelines, child privacy policies, and contains no intrusive user tracking.</p>
             <h4>4. Inquiries</h4>
-            <p>
-              For privacy requests, reach out anytime at <strong>asitech5info@gmail.com</strong>.
-            </p>
+            <p>For privacy requests, reach out anytime at <strong>asitech5info@gmail.com</strong>.</p>
           </div>
           <div class="about-footer-actions">
             <button id="privacy-ok-btn" class="green-pill-btn about-ok-btn">Understood</button>
@@ -545,7 +586,7 @@
         </div>
       </div>
 
-      <!-- ================= 13. ABOUT MODAL (Only accessed from More Settings) ================= -->
+      <!-- ================= 13. ABOUT MODAL ================= -->
       <div id="about-modal" class="modal-overlay hidden" data-testid="about-modal">
         <div class="modal-card about-card">
           <div class="about-header">
@@ -557,7 +598,6 @@
           </div>
 
           <div class="about-scroll-body">
-            <!-- Hero Badge & Title -->
             <div class="about-hero-badge">
               <div class="about-gem-glow">💎</div>
               <div class="about-hero-titles">
@@ -572,7 +612,6 @@
               </div>
             </div>
 
-            <!-- About Story / Overview -->
             <div class="about-section-box">
               <h4 class="about-box-title">✨ What is Block Blaster?</h4>
               <p class="about-text">
@@ -580,87 +619,6 @@
               </p>
             </div>
 
-            <!-- Gameplay Features Grid -->
-            <div class="about-section-box">
-              <h4 class="about-box-title">🎮 Key Highlights</h4>
-              <div class="about-features-grid">
-                <div class="about-feature-item">
-                  <span class="feat-icon">🗺️</span>
-                  <div class="feat-meta">
-                    <strong>96 Levels</strong>
-                    <small>Trophy Silhouette</small>
-                  </div>
-                </div>
-                <div class="about-feature-item">
-                  <span class="feat-icon">♾️</span>
-                  <div class="feat-meta">
-                    <strong>Classic Mode</strong>
-                    <small>Resume Anywhere</small>
-                  </div>
-                </div>
-                <div class="about-feature-item">
-                  <span class="feat-icon">🎵</span>
-                  <div class="feat-meta">
-                    <strong>Harmonic Audio</strong>
-                    <small>Procedural Chimes</small>
-                  </div>
-                </div>
-                <div class="about-feature-item">
-                  <span class="feat-icon">🎨</span>
-                  <div class="feat-meta">
-                    <strong>Dynamic Themes</strong>
-                    <small>Board Clear Shifts</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Rules & How to Play -->
-            <div class="about-section-box">
-              <h4 class="about-box-title">📖 Rules & How to Play</h4>
-              <div class="about-steps-list">
-                <div class="about-step-card">
-                  <div class="step-num-badge">1</div>
-                  <div class="step-content">
-                    <strong>Drag or Tap to Place</strong>
-                    <p>Pick shapes from your bottom tray and drop them onto the 8×8 grid.</p>
-                  </div>
-                </div>
-                <div class="about-step-card">
-                  <div class="step-num-badge">2</div>
-                  <div class="step-content">
-                    <strong>Blast Rows & Columns</strong>
-                    <p>Fill entire horizontal rows or vertical columns to clear blocks.</p>
-                  </div>
-                </div>
-                <div class="about-step-card">
-                  <div class="step-num-badge">3</div>
-                  <div class="step-content">
-                    <strong>Chain Dynamic Combos</strong>
-                    <p>Blast lines on consecutive moves to multiply your score (x2, x3, x4...)!</p>
-                  </div>
-                </div>
-                <div class="about-step-card">
-                  <div class="step-num-badge">4</div>
-                  <div class="step-content">
-                    <strong>Trigger Theme Transformations</strong>
-                    <p>Clear every block off the board to activate an instant theme switch!</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Pro Tips -->
-            <div class="about-section-box pro-tips-box">
-              <h4 class="about-box-title">💡 Pro Tips</h4>
-              <ul class="about-tips-list">
-                <li>Leave space for large <strong>2×3, 3×2, and 3×3 square blocks</strong>.</li>
-                <li>Clear multiple rows and columns simultaneously for mega-points.</li>
-                <li>In Adventure Mode, achieve the target score or blast diamond blocks to win!</li>
-              </ul>
-            </div>
-
-            <!-- Studio Credits -->
             <div class="about-credits-card">
               <div class="credits-heart">💖</div>
               <div class="credits-text">
@@ -670,7 +628,6 @@
             </div>
           </div>
 
-          <!-- Bottom Confirm Button -->
           <div class="about-footer-actions">
             <button id="about-gotit-btn" class="green-pill-btn about-ok-btn">
               <span>🚀 Got It, Let's Play!</span>
@@ -679,11 +636,11 @@
         </div>
       </div>
 
-      <!-- Dragging Avatar Clone (Fixed on viewport during drag) -->
+      <!-- Dragging Avatar Clone (Dynamically sized to match grid cells) -->
       <div id="drag-avatar" class="drag-avatar hidden"></div>
     </div>
 
-    <!-- Canvas for Confetti (Only triggered on classic game over or adventure level win) -->
+    <!-- Canvas for Confetti -->
     <canvas id="confetti-canvas" class="confetti-canvas"></canvas>
 
     <script type="module" src="/src/main.js"></script>
