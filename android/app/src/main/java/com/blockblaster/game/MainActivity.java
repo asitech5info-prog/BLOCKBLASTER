@@ -3,6 +3,8 @@ package com.blockblaster.game;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
@@ -10,6 +12,17 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         hideSystemUI();
+        configureWebView();
+    }
+
+    private void configureWebView() {
+        if (bridge != null && bridge.getWebView() != null) {
+            WebView webView = bridge.getWebView();
+            webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+            WebSettings settings = webView.getSettings();
+            settings.setRenderPriority(WebSettings.RenderPriority.HIGH);
+            settings.setEnableSmoothTransition(true);
+        }
     }
 
     @Override

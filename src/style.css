@@ -5,8 +5,7 @@
   /* Responsive board size optimizing for all devices (including tall Pixel 8) */
   --board-size: min(calc(100vw - 24px), calc(100dvh - 290px), 430px);
   --cell-gap: 4px;
-  --cell-size: calc((var(--board-size) - 16px - (7 * var(--cell-gap))) / 8);
-  --drag-cell-size: 42px;
+  --drag-cell-size: var(--cell-size);
 
   /* Default Royal Blue Theme matching Reference Screenshots */
   --theme-bg-gradient: radial-gradient(circle at 50% 25%, #2a69f5 0%, #1e52db 50%, #11389e 100%);
@@ -288,7 +287,7 @@ body {
 
 .blast-word {
   font-family: var(--font-display);
-  font-size: 3.4rem;
+  font-size: 3.05rem;
   font-weight: 900;
   font-style: italic;
   color: #00e5ff;
@@ -781,7 +780,6 @@ body {
   border-radius: 6px;
   border: 1px solid var(--theme-cell-border);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
-  transition: transform 0.12s ease, background 0.12s ease;
   position: relative;
   display: flex;
   align-items: center;
@@ -1037,6 +1035,9 @@ body {
   gap: 4px;
   transform: translate3d(-50%, -50%, 0) translateZ(0);
   will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  contain: layout style paint;
 }
 
 .avatar-cell {

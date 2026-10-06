@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Crisp High-Contrast Background -->
+  <rect width="64" height="64" rx="14" fill="#1248d8" stroke="#3d7eff" stroke-width="2" />
+
+  <!-- 4 Crisp 3D Blocks (2x2 Grid) -->
+  <!-- 1. Top-Left: Cyan Block -->
+  <g transform="translate(9, 13)">
+    <rect width="21" height="21" rx="4" fill="#005ec4" />
+    <rect width="21" height="19" rx="4" fill="#00d2ff" />
+    <!-- Gloss -->
+    <path d="M 2 3 L 19 3 L 16 6 L 5 6 Z" fill="#ffffff" opacity="0.9" />
+  </g>
+
+  <!-- 2. Top-Right: Ruby Red Block -->
+  <g transform="translate(34, 13)">
+    <rect width="21" height="21" rx="4" fill="#b31217" />
+    <rect width="21" height="19" rx="4" fill="#ff3838" />
+    <!-- Gloss -->
+    <path d="M 2 3 L 19 3 L 16 6 L 5 6 Z" fill="#ffffff" opacity="0.9" />
+  </g>
+
+  <!-- 3. Bottom-Left: Emerald Green Block -->
+  <g transform="translate(9, 36)">
+    <rect width="21" height="21" rx="4" fill="#13753a" />
+    <rect width="21" height="19" rx="4" fill="#2ed573" />
+    <!-- Gloss -->
+    <path d="M 2 3 L 19 3 L 16 6 L 5 6 Z" fill="#ffffff" opacity="0.9" />
+  </g>
+
+  <!-- 4. Bottom-Right: Golden Amber Block -->
+  <g transform="translate(34, 36)">
+    <rect width="21" height="21" rx="4" fill="#cc7a00" />
+    <rect width="21" height="19" rx="4" fill="#ffa502" />
+    <!-- Gloss -->
+    <path d="M 2 3 L 19 3 L 16 6 L 5 6 Z" fill="#ffffff" opacity="0.9" />
+  </g>
+
+  <!-- Prominent Crown Centerpiece (Crisp, High-Contrast Outlines) -->
+  <g transform="translate(32, 13)">
+    <!-- Dark shadow outline for tab readability -->
+    <path d="M -16 6 L -11 -7 L -2 0 L 0 -10 L 2 0 L 11 -7 L 16 6 Z" fill="#1a1a2e" stroke="#1a1a2e" stroke-width="2" stroke-linejoin="round" />
+    <!-- Golden crown body -->
+    <path d="M -15 5 L -10 -6 L -2 0 L 0 -9 L 2 0 L 10 -6 L 15 5 Z" fill="#ffd32a" />
+    <path d="M -15 5 L -10 -6 L 0 -9 L 10 -6 L 15 5 Z" fill="#ffc048" opacity="0.4" />
+    <!-- Base band -->
+    <rect x="-15" y="2" width="30" height="4" rx="2" fill="#e58e26" />
+    <!-- Jewels on peaks -->
+    <circle cx="-10" cy="-6" r="1.5" fill="#ffffff" />
+    <circle cx="0" cy="-9" r="1.8" fill="#ffffff" />
+    <circle cx="10" cy="-6" r="1.5" fill="#ffffff" />
+    <!-- Center ruby jewel -->
+    <polygon points="0,0 2.5,3.5 0,7 -2.5,3.5" fill="#ff3838" />
+  </g>
+</svg>

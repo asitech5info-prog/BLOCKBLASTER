@@ -112,6 +112,10 @@ export class BlockBlasterGame {
     // Map Elements
     this.adventureSilhouetteGrid = document.getElementById('adventure-silhouette-grid');
     this.mapPlayLevelBtn = document.getElementById('map-play-level-btn');
+
+    // High-performance cell caches & ghost tracking
+    this.boardCellEls = [];
+    this.activeGhostCells = [];
   }
 
   init() {
@@ -131,8 +135,6 @@ export class BlockBlasterGame {
   updateBoardDimensions() {
     if (this.boardEl) {
       this.cachedBoardRect = this.boardEl.getBoundingClientRect();
-      const cellSize = (this.cachedBoardRect.width - 16 - 7 * 4) / 8;
-      document.documentElement.style.setProperty('--drag-cell-size', `${Math.max(28, cellSize)}px`);
     }
   }
 
@@ -203,17 +205,20 @@ export class BlockBlasterGame {
       this.homeWinStreakNum.textContent = String(currentLvl);
     }
 
-    const pct = Math.min(100, Math.round(((currentLvl - 1) / 96) * 100));
+    // Dynamic progress strictly based on completed levels (0 completed = 0%, grows per level)
+    const solvedLevels = Math.max(0, currentLvl - 1);
+    const pct = Math.min(100, Math.round((solvedLevels / 96) * 100));
     if (this.homeAdventureProgressFill) {
-      this.homeAdventureProgressFill.style.width = `${Math.max(15, pct)}%`;
+      this.homeAdventureProgressFill.style.width = `${pct}%`;
     }
     if (this.homeAdventurePctText) {
-      this.homeAdventurePctText.textContent = `${Math.max(15, pct)}%`;
+      this.homeAdventurePctText.textContent = `${pct}%`;
     }
   }
 
   createBoardGrid() {
     this.boardEl.innerHTML = '';
+    this.boardCellEls = Array.from({ length: this.boardSize }, () => Array(this.boardSize).fill(null));
     for (let r = 0; r < this.boardSize; r++) {
       for (let c = 0; c < this.boardSize; c++) {
         const cell = document.createElement('div');
@@ -221,6 +226,7 @@ export class BlockBlasterGame {
         cell.dataset.row = r;
         cell.dataset.col = c;
         this.boardEl.appendChild(cell);
+        this.boardCellEls[r][c] = cell;
       }
     }
   }
@@ -394,26 +400,32 @@ export class BlockBlasterGame {
         const cell = this.getCellEl(r, c);
         if (!cell) continue;
 
-        cell.className = 'cell';
         const val = this.board[r][c];
-
+        let targetClass = 'cell';
         if (val) {
-          cell.classList.add('filled');
+          targetClass += ' filled';
           if (typeof val === 'string') {
-            cell.classList.add(val);
+            targetClass += ` ${val}`;
           } else if (typeof val === 'object') {
-            cell.classList.add(val.color || 'color-gold');
+            targetClass += ` ${val.color || 'color-gold'}`;
             if (val.hasDiamond) {
-              cell.classList.add('has-diamond');
-              if (val.diamondType) cell.classList.add(val.diamondType);
+              targetClass += ' has-diamond';
+              if (val.diamondType) targetClass += ` ${val.diamondType}`;
             }
           }
+        }
+
+        if (cell.className !== targetClass) {
+          cell.className = targetClass;
         }
       }
     }
   }
 
   getCellEl(r, c) {
+    if (this.boardCellEls && this.boardCellEls[r] && this.boardCellEls[r][c]) {
+      return this.boardCellEls[r][c];
+    }
     return this.boardEl.querySelector(`[data-row="${r}"][data-col="${c}"]`);
   }
 
@@ -1251,12 +1263,9 @@ export class BlockBlasterGame {
     if (!piece || this.isGameOver) return;
 
     e.preventDefault();
-    this.updateBoardDimensions();
-
-    const slot = this.traySlots[slotIndex];
-    try {
-      slot.setPointerCapture(e.pointerId);
-    } catch (err) {}
+    if (!this.cachedBoardRect) {
+      this.updateBoardDimensions();
+    }
 
     this.activeDrag = {
       slotIndex,
@@ -1278,7 +1287,7 @@ export class BlockBlasterGame {
     const dx = e.clientX - drag.startX;
     const dy = e.clientY - drag.startY;
 
-    if (!drag.isDragging && Math.hypot(dx, dy) > 4) {
+    if (!drag.isDragging && Math.hypot(dx, dy) > 2) {
       drag.isDragging = true;
       this.selectedSlotIndex = null;
       this.traySlots.forEach(s => s.classList.remove('selected'));
@@ -1293,19 +1302,9 @@ export class BlockBlasterGame {
       const posX = e.clientX;
       const posY = e.clientY + touchOffsetY;
 
-      this.pendingAvatarPos.x = posX;
-      this.pendingAvatarPos.y = posY;
-
-      // Update avatar immediately for zero-latency 60fps tracking!
+      // Update avatar and board ghost in lockstep for buttery-smooth 60fps tracking!
       this.updateDragAvatarPosition(posX, posY);
-
-      if (!this.isRafScheduled) {
-        this.isRafScheduled = true;
-        requestAnimationFrame(() => {
-          this.updateBoardGhost(this.pendingAvatarPos.x, this.pendingAvatarPos.y, drag.piece);
-          this.isRafScheduled = false;
-        });
-      }
+      this.updateBoardGhost(posX, posY, drag.piece);
     }
   }
 
@@ -1444,13 +1443,15 @@ export class BlockBlasterGame {
     const isValid = canFitAt(this.board, piece.matrix, r, c, this.boardSize);
     const rows = piece.matrix.length;
     const cols = piece.matrix[0].length;
+    const ghostClass = isValid ? 'ghost-valid' : 'ghost-invalid';
 
     for (let i = 0; i < rows; i++) {
       for (let j = 0; j < cols; j++) {
         if (piece.matrix[i][j]) {
           const cell = this.getCellEl(r + i, c + j);
           if (cell) {
-            cell.classList.add(isValid ? 'ghost-valid' : 'ghost-invalid');
+            cell.classList.add(ghostClass);
+            this.activeGhostCells.push(cell);
           }
         }
       }
@@ -1458,8 +1459,11 @@ export class BlockBlasterGame {
   }
 
   clearGhostHighlights() {
-    this.boardEl.querySelectorAll('.cell.ghost-valid, .cell.ghost-invalid').forEach(el => {
-      el.classList.remove('ghost-valid', 'ghost-invalid');
-    });
+    if (this.activeGhostCells && this.activeGhostCells.length > 0) {
+      for (let i = 0; i < this.activeGhostCells.length; i++) {
+        this.activeGhostCells[i].classList.remove('ghost-valid', 'ghost-invalid');
+      }
+      this.activeGhostCells = [];
+    }
   }
 }

@@ -269,4 +269,52 @@ test.describe('Block Blaster Full Feature Verification', () => {
     expect(result.isGameOver).toBe(false);
   });
 
+  test('Requirement 13: Homepage Title is BLOCK BLASTER, Adventure Progress starts at 0% and increases dynamically', async ({ page }) => {
+    // 1. Verify Homepage Title has BLASTER (not BLAST)
+    const blastWord = page.locator('.home-hero .blast-word');
+    await expect(blastWord).toHaveText('BLASTER');
+
+    // 2. Verify Favicon links in document head
+    const svgFavicon = page.locator('link[rel="icon"][type="image/svg+xml"]');
+    await expect(svgFavicon).toHaveAttribute('href', '/favicon.svg');
+    const pngFavicon32 = page.locator('link[rel="icon"][sizes="32x32"]');
+    await expect(pngFavicon32).toHaveAttribute('href', '/favicon-32x32.png');
+
+    // 3. Verify Adventure percentage starts at 0% before any levels solved
+    const pctText = page.locator('#home-adventure-pct-text');
+    await expect(pctText).toHaveText('0%');
+    const progressFill = page.locator('#home-adventure-progress-fill');
+    await expect(progressFill).toHaveCSS('width', '0px');
+
+    // 4. Complete 1 level programmatically and verify progress increases dynamically
+    await page.evaluate(() => {
+      // Simulate completing level 1
+      window.__game.triggerLevelWin();
+    });
+
+    // Go to Map then Back to Home
+    await page.locator('#win-map-btn').click();
+    await expect(page.locator('#screen-adventure-map')).toBeVisible();
+    await page.locator('#map-back-btn').click();
+    await expect(page.locator('#screen-home')).toBeVisible();
+
+    // Verify Level text is Level 2 and progress is > 0% (1% for level 1 completed)
+    await expect(page.locator('#home-adventure-level-text')).toHaveText('Level 2');
+    await expect(pctText).toHaveText('1%');
+
+    // Simulate completing 4 levels
+    await page.evaluate(() => {
+      // Complete level 2, 3, 4
+      const adv = window.__adventure;
+      adv.completeLevel(2);
+      adv.completeLevel(3);
+      adv.completeLevel(4);
+      window.__game.updateHomeUI();
+    });
+
+    // Now Level 5 unlocked (4 levels solved: 4/96 -> 4%)
+    await expect(page.locator('#home-adventure-level-text')).toHaveText('Level 5');
+    await expect(pctText).toHaveText('4%');
+  });
+
 });

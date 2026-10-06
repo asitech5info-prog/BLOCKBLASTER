@@ -8,30 +8,33 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 
 const sizes = [
-  { dir: 'public', name: 'icon.png', size: 512 },
-  { dir: 'public', name: 'favicon.png', size: 64 },
-  { dir: 'android/app/src/main/res/mipmap-mdpi', name: 'ic_launcher.png', size: 48 },
-  { dir: 'android/app/src/main/res/mipmap-mdpi', name: 'ic_launcher_round.png', size: 48 },
-  { dir: 'android/app/src/main/res/mipmap-mdpi', name: 'ic_launcher_foreground.png', size: 48 },
-  { dir: 'android/app/src/main/res/mipmap-hdpi', name: 'ic_launcher.png', size: 72 },
-  { dir: 'android/app/src/main/res/mipmap-hdpi', name: 'ic_launcher_round.png', size: 72 },
-  { dir: 'android/app/src/main/res/mipmap-hdpi', name: 'ic_launcher_foreground.png', size: 72 },
-  { dir: 'android/app/src/main/res/mipmap-xhdpi', name: 'ic_launcher.png', size: 96 },
-  { dir: 'android/app/src/main/res/mipmap-xhdpi', name: 'ic_launcher_round.png', size: 96 },
-  { dir: 'android/app/src/main/res/mipmap-xhdpi', name: 'ic_launcher_foreground.png', size: 96 },
-  { dir: 'android/app/src/main/res/mipmap-xxhdpi', name: 'ic_launcher.png', size: 144 },
-  { dir: 'android/app/src/main/res/mipmap-xxhdpi', name: 'ic_launcher_round.png', size: 144 },
-  { dir: 'android/app/src/main/res/mipmap-xxhdpi', name: 'ic_launcher_foreground.png', size: 144 },
-  { dir: 'android/app/src/main/res/mipmap-xxxhdpi', name: 'ic_launcher.png', size: 192 },
-  { dir: 'android/app/src/main/res/mipmap-xxxhdpi', name: 'ic_launcher_round.png', size: 192 },
-  { dir: 'android/app/src/main/res/mipmap-xxxhdpi', name: 'ic_launcher_foreground.png', size: 192 },
+  { dir: 'public', name: 'icon.png', size: 512, src: 'icon.svg' },
+  { dir: 'public', name: 'favicon.png', size: 64, src: 'favicon.svg' },
+  { dir: 'public', name: 'favicon-32x32.png', size: 32, src: 'favicon.svg' },
+  { dir: 'public', name: 'favicon-16x16.png', size: 16, src: 'favicon.svg' },
+  { dir: 'public', name: 'apple-touch-icon.png', size: 180, src: 'favicon.svg' },
+  { dir: 'android/app/src/main/res/mipmap-mdpi', name: 'ic_launcher.png', size: 48, src: 'icon.svg' },
+  { dir: 'android/app/src/main/res/mipmap-mdpi', name: 'ic_launcher_round.png', size: 48, src: 'icon.svg' },
+  { dir: 'android/app/src/main/res/mipmap-mdpi', name: 'ic_launcher_foreground.png', size: 48, src: 'icon.svg' },
+  { dir: 'android/app/src/main/res/mipmap-hdpi', name: 'ic_launcher.png', size: 72, src: 'icon.svg' },
+  { dir: 'android/app/src/main/res/mipmap-hdpi', name: 'ic_launcher_round.png', size: 72, src: 'icon.svg' },
+  { dir: 'android/app/src/main/res/mipmap-hdpi', name: 'ic_launcher_foreground.png', size: 72, src: 'icon.svg' },
+  { dir: 'android/app/src/main/res/mipmap-xhdpi', name: 'ic_launcher.png', size: 96, src: 'icon.svg' },
+  { dir: 'android/app/src/main/res/mipmap-xhdpi', name: 'ic_launcher_round.png', size: 96, src: 'icon.svg' },
+  { dir: 'android/app/src/main/res/mipmap-xhdpi', name: 'ic_launcher_foreground.png', size: 96, src: 'icon.svg' },
+  { dir: 'android/app/src/main/res/mipmap-xxhdpi', name: 'ic_launcher.png', size: 144, src: 'icon.svg' },
+  { dir: 'android/app/src/main/res/mipmap-xxhdpi', name: 'ic_launcher_round.png', size: 144, src: 'icon.svg' },
+  { dir: 'android/app/src/main/res/mipmap-xxhdpi', name: 'ic_launcher_foreground.png', size: 144, src: 'icon.svg' },
+  { dir: 'android/app/src/main/res/mipmap-xxxhdpi', name: 'ic_launcher.png', size: 192, src: 'icon.svg' },
+  { dir: 'android/app/src/main/res/mipmap-xxxhdpi', name: 'ic_launcher_round.png', size: 192, src: 'icon.svg' },
+  { dir: 'android/app/src/main/res/mipmap-xxxhdpi', name: 'ic_launcher_foreground.png', size: 192, src: 'icon.svg' },
 ];
 
 async function generate() {
   const browser = await chromium.launch();
   const page = await browser.newPage();
-  const svgPath = path.join(rootDir, 'public', 'icon.svg');
-  const svgContent = fs.readFileSync(svgPath, 'utf-8');
+  const iconSvgContent = fs.readFileSync(path.join(rootDir, 'public', 'icon.svg'), 'utf-8');
+  const faviconSvgContent = fs.readFileSync(path.join(rootDir, 'public', 'favicon.svg'), 'utf-8');
 
   for (const item of sizes) {
     const targetDir = path.join(rootDir, item.dir);
@@ -39,6 +42,7 @@ async function generate() {
       fs.mkdirSync(targetDir, { recursive: true });
     }
     const targetPath = path.join(targetDir, item.name);
+    const content = item.src === 'favicon.svg' ? faviconSvgContent : iconSvgContent;
 
     await page.setViewportSize({ width: item.size, height: item.size });
     await page.setContent(`
@@ -52,7 +56,7 @@ async function generate() {
           </style>
         </head>
         <body>
-          ${svgContent}
+          ${content}
         </body>
       </html>
     `);
