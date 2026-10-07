@@ -324,9 +324,8 @@ export class AdventureManager {
     this.currentLevel = nextLvl;
     localStorage.setItem('bb_current_level', String(this.currentLevel));
 
-    // Award BB Coins for playing and winning Adventure levels
-    const coinsReward = 50 + Math.min(100, Math.floor(levelNum / 10) * 5);
-    wallet.addCoins(coinsReward, `Adventure Level ${levelNum} Completed`);
+    // Award 100 BB Coins for winning Adventure levels
+    wallet.addCoins(100, `Adventure Level ${levelNum} Completed`);
   }
 
   isLevelUnlocked(levelNum) {

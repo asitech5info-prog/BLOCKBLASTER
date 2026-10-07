@@ -102,6 +102,7 @@ export class BlockBlasterGame {
 
     // Settings Modal Elements
     this.settingsExitHomeBtn = document.getElementById('settings-exit-home-btn');
+    this.settingsRetryBtn = document.getElementById('settings-retry-btn');
     this.soundToggleBtn = document.getElementById('settings-sound-btn');
     this.bgmToggleBtn = document.getElementById('settings-bgm-btn');
 
@@ -129,6 +130,8 @@ export class BlockBlasterGame {
     this.settingsHapticsBtn = document.getElementById('settings-haptics-btn');
     this.hapticsIconWrap = document.getElementById('haptics-icon-wrap');
     this.activeAvatarFilter = 'all';
+    this.activeShopTab = 'skins';
+    this.activeShopPfpFilter = 'all';
     this.activeChestChallengeId = null;
 
     // High-performance cell caches & ghost tracking
@@ -835,6 +838,7 @@ export class BlockBlasterGame {
     this.clearSavedGameState('adventure');
     adventure.completeLevel(this.currentLevelNum, this.score);
     medalManager.recordLevelCompleted(this.currentLevelNum);
+    this.updateCoinsDisplay();
     sound.playComboFanfare();
 
     const streakEl = document.getElementById('win-streak-count');
@@ -1057,9 +1061,12 @@ export class BlockBlasterGame {
     // Settings Opened from Home
     document.getElementById('home-settings-btn').addEventListener('click', () => {
       sound.playClick();
-      // Exit button is HIDDEN in home page setting!
+      // Exit and Retry buttons are HIDDEN in home page setting!
       if (this.settingsExitHomeBtn) {
         this.settingsExitHomeBtn.classList.add('hidden');
+      }
+      if (this.settingsRetryBtn) {
+        this.settingsRetryBtn.classList.add('hidden');
       }
       this.settingsModal.classList.remove('hidden');
       this.soundToggleBtn.classList.toggle('muted', sound.isMuted);
@@ -1068,13 +1075,31 @@ export class BlockBlasterGame {
     // Settings Opened In-Game (while playing)
     document.getElementById('game-settings-btn').addEventListener('click', () => {
       sound.playClick();
-      // Exit button is SHOWN in in-game setting!
+      // Exit and Retry buttons are SHOWN in in-game setting!
       if (this.settingsExitHomeBtn) {
         this.settingsExitHomeBtn.classList.remove('hidden');
+      }
+      if (this.settingsRetryBtn) {
+        this.settingsRetryBtn.classList.remove('hidden');
       }
       this.settingsModal.classList.remove('hidden');
       this.soundToggleBtn.classList.toggle('muted', sound.isMuted);
     });
+
+    // Settings Retry Button Action (Restarts current level or mode fresh)
+    if (this.settingsRetryBtn) {
+      this.settingsRetryBtn.addEventListener('click', () => {
+        sound.playClick();
+        this.settingsModal.classList.add('hidden');
+        if (this.mode === 'adventure') {
+          this.clearSavedGameState('adventure');
+          this.startAdventureLevel(this.currentLevelNum);
+        } else {
+          this.clearSavedGameState('classic');
+          this.startNewGame();
+        }
+      });
+    }
 
     // Settings Exit to Home Button Action
     if (this.settingsExitHomeBtn) {
@@ -1279,6 +1304,46 @@ export class BlockBlasterGame {
       });
     }
 
+    // Shop Tab switching (Block Skins vs Character PFPs)
+    const tabSkins = document.getElementById('shop-tab-skins');
+    const tabPfps = document.getElementById('shop-tab-pfps');
+    const viewSkins = document.getElementById('shop-view-skins');
+    const viewPfps = document.getElementById('shop-view-pfps');
+
+    if (tabSkins && tabPfps) {
+      tabSkins.addEventListener('click', () => {
+        sound.playClick();
+        tabSkins.classList.add('active');
+        tabPfps.classList.remove('active');
+        if (viewSkins) viewSkins.classList.remove('hidden');
+        if (viewPfps) viewPfps.classList.add('hidden');
+        this.activeShopTab = 'skins';
+      });
+      tabPfps.addEventListener('click', () => {
+        sound.playClick();
+        tabPfps.classList.add('active');
+        tabSkins.classList.remove('active');
+        if (viewPfps) viewPfps.classList.remove('hidden');
+        if (viewSkins) viewSkins.classList.add('hidden');
+        this.activeShopTab = 'pfps';
+        this.renderShopPfps();
+      });
+    }
+
+    // Shop PFP Gender Filters
+    ['all', 'boys', 'girls'].forEach(filter => {
+      const btn = document.getElementById(`shop-filter-${filter}`);
+      if (btn) {
+        btn.addEventListener('click', () => {
+          sound.playClick();
+          document.querySelectorAll('#shop-pfp-filters .avatar-tab').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.activeShopPfpFilter = filter === 'boys' ? 'boy' : filter === 'girls' ? 'girl' : 'all';
+          this.renderShopPfps();
+        });
+      }
+    });
+
     const skinShopClose = document.getElementById('skin-shop-close-btn');
     if (skinShopClose) {
       skinShopClose.addEventListener('click', () => {
@@ -1447,10 +1512,10 @@ export class BlockBlasterGame {
 
   // --- Revive Logic ---
   reviveGame() {
-    const cost = 50;
-    if (wallet.getBalance() < cost) {
-      // First revive or low coins grace: give revive
-      wallet.addCoins(cost, 'Grace Revive');
+    const cost = 5000;
+    if (!wallet.canAfford(cost)) {
+      alert(`Not enough BB Coins! Revive requires 5,000 BB Coins (You have ${wallet.getBalance().toLocaleString()} 🪙).`);
+      return;
     }
 
     if (wallet.spendCoins(cost, 'Revive Game')) {
@@ -1484,9 +1549,10 @@ export class BlockBlasterGame {
     }
   }
 
-  // --- Skin Shop ---
+  // --- Skin & PFP Shop ---
   openSkinShop() {
     this.renderSkinShop();
+    this.renderShopPfps();
     if (this.skinShopModal) this.skinShopModal.classList.remove('hidden');
   }
 
@@ -1573,6 +1639,71 @@ export class BlockBlasterGame {
     });
   }
 
+  renderShopPfps() {
+    const grid = document.getElementById('shop-pfps-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const avatars = profileManager.getAvatars(this.activeShopPfpFilter || 'all');
+    const currentPfpId = profileManager.getPfp();
+
+    avatars.forEach(av => {
+      const isUnlocked = profileManager.isAvatarUnlocked(av.id);
+      const isEquipped = av.id === currentPfpId;
+
+      const card = document.createElement('div');
+      card.className = `shop-pfp-card ${isEquipped ? 'equipped' : ''} ${isUnlocked ? 'unlocked' : 'locked'}`;
+
+      const avatarWrap = document.createElement('div');
+      avatarWrap.className = 'shop-pfp-avatar-wrap';
+      avatarWrap.innerHTML = av.svg;
+
+      const info = document.createElement('div');
+      info.className = 'shop-pfp-info';
+      info.innerHTML = `
+        <strong class="shop-pfp-name">${av.name}</strong>
+        <span class="shop-pfp-title">${av.title}</span>
+        <span class="avatar-gender-tag tag-${av.gender}">${av.gender === 'boy' ? 'Boy' : 'Girl'}</span>
+      `;
+
+      const actions = document.createElement('div');
+      actions.className = 'shop-pfp-actions';
+
+      if (isEquipped) {
+        actions.innerHTML = `<button class="pfp-shop-btn btn-equipped" disabled>Equipped ✓</button>`;
+      } else if (isUnlocked) {
+        const btn = document.createElement('button');
+        btn.className = 'pfp-shop-btn btn-equip';
+        btn.textContent = 'Equip';
+        btn.addEventListener('click', () => {
+          profileManager.setPfp(av.id);
+          this.renderShopPfps();
+          this.renderProfileModal();
+        });
+        actions.appendChild(btn);
+      } else {
+        const btn = document.createElement('button');
+        btn.className = 'pfp-shop-btn btn-buy';
+        btn.innerHTML = `<span>Buy</span> <span>🪙 ${av.price.toLocaleString()}</span>`;
+        btn.addEventListener('click', () => {
+          const res = profileManager.buyAvatar(av.id);
+          if (res.success) {
+            this.renderShopPfps();
+            this.renderProfileModal();
+          } else {
+            alert(res.reason || 'Not enough BB Coins!');
+          }
+        });
+        actions.appendChild(btn);
+      }
+
+      card.appendChild(avatarWrap);
+      card.appendChild(info);
+      card.appendChild(actions);
+      grid.appendChild(card);
+    });
+  }
+
   // --- Daily Challenges ---
   openDailyChallenge() {
     this.renderDailyChallenge();
@@ -1587,9 +1718,6 @@ export class BlockBlasterGame {
     const list = document.getElementById('daily-challenges-list');
     if (!list) return;
     list.innerHTML = '';
-
-    const dateText = document.getElementById('daily-current-date-text');
-    if (dateText) dateText.textContent = `Daily Missions (${dailyChallenge.todayKey})`;
 
     const challenges = dailyChallenge.getChallenges();
 
@@ -1730,8 +1858,11 @@ export class BlockBlasterGame {
     const currentPfpId = profileManager.getPfp();
 
     avatars.forEach(av => {
+      const isUnlocked = profileManager.isAvatarUnlocked(av.id);
+      const isEquipped = av.id === currentPfpId;
+
       const tile = document.createElement('div');
-      tile.className = `avatar-choice-tile ${av.id === currentPfpId ? 'selected' : ''}`;
+      tile.className = `avatar-choice-tile ${isEquipped ? 'selected' : ''} ${isUnlocked ? 'unlocked' : 'locked'}`;
       tile.title = `${av.name} (${av.gender})`;
 
       const svgWrap = document.createElement('div');
@@ -1750,10 +1881,28 @@ export class BlockBlasterGame {
       tile.appendChild(nameLabel);
       tile.appendChild(tagLabel);
 
+      if (!isUnlocked) {
+        const priceBadge = document.createElement('span');
+        priceBadge.className = 'avatar-price-badge';
+        priceBadge.textContent = `🪙 ${av.price.toLocaleString()}`;
+        tile.appendChild(priceBadge);
+      }
+
       tile.addEventListener('click', () => {
         sound.playClick();
-        profileManager.setPfp(av.id);
-        this.renderProfileModal();
+        if (isUnlocked) {
+          profileManager.setPfp(av.id);
+          this.renderProfileModal();
+          this.renderShopPfps();
+        } else {
+          const res = profileManager.buyAvatar(av.id);
+          if (res.success) {
+            this.renderProfileModal();
+            this.renderShopPfps();
+          } else {
+            alert(res.reason || 'Not enough BB Coins!');
+          }
+        }
       });
 
       grid.appendChild(tile);

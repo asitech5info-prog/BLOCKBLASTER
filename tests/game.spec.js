@@ -4,9 +4,12 @@ import { SHAPE_DEFINITIONS } from '../src/shapes.js';
 test.describe('Block Blaster Full Feature Verification', () => {
 
   test.beforeEach(async ({ page }) => {
-    // Clear localStorage to test fresh start
+    // Clear localStorage on fresh test start (but not on subsequent reloads within the same test)
     await page.addInitScript(() => {
-      localStorage.clear();
+      if (!sessionStorage.getItem('__bb_tested')) {
+        sessionStorage.setItem('__bb_tested', '1');
+        localStorage.clear();
+      }
     });
     await page.goto('/');
     // Wait for initial loading animation to transition to homepage
@@ -352,13 +355,13 @@ test.describe('Block Blaster Full Feature Verification', () => {
     const shopModal = page.locator('#skin-shop-modal');
     await expect(shopModal).toBeVisible();
 
-    // 3. Verify skins grid rendered with skins (Classic, Biscuit, Cheese, Candy, etc.)
+    // 3. Verify skins grid rendered with skins (14 skins total)
     const skinCards = page.locator('.skin-card');
-    await expect(skinCards).toHaveCount(8);
+    await expect(skinCards).toHaveCount(14);
 
-    // 4. Buy and equip the Crispy Biscuit skin (150 coins)
+    // 4. Buy and equip the Crispy Biscuit skin
     await page.evaluate(() => {
-      window.__wallet.addCoins(200); // Ensure ample balance
+      window.__wallet.addCoins(3000); // Ensure ample balance
       window.__skinManager.buySkin('biscuit');
     });
 
@@ -391,7 +394,12 @@ test.describe('Block Blaster Full Feature Verification', () => {
     expect(updatedCoins).toBeGreaterThan(initialCoins);
   });
 
-  test('Requirement 16: Revive Option Restores Board Space on Game Over', async ({ page }) => {
+  test('Requirement 16: Revive Option Restores Board Space on Game Over (5,000 BB Coins)', async ({ page }) => {
+    // Grant 5,000 BB Coins to allow revive
+    await page.evaluate(() => {
+      window.__wallet.addCoins(5000);
+    });
+
     // Start classic game
     await page.locator('#btn-mode-classic').click();
     await expect(page.locator('#screen-gameplay')).toBeVisible();
@@ -404,6 +412,7 @@ test.describe('Block Blaster Full Feature Verification', () => {
     await expect(page.locator('#screen-game-over')).toBeVisible();
     const reviveBtn = page.locator('#death-revive-btn');
     await expect(reviveBtn).toBeVisible();
+    await expect(reviveBtn).toContainText('5,000');
 
     // Click Revive
     await reviveBtn.click();
@@ -501,19 +510,19 @@ test.describe('Block Blaster Full Feature Verification', () => {
     const storedName = await page.evaluate(() => window.__profileManager.getName());
     expect(storedName).toBe('Super Blaster');
 
-    // 2. Verify all 14 animated character PFPs rendered
+    // 2. Verify all 24 animated character PFPs rendered
     const avatarTiles = page.locator('.avatar-choice-tile');
-    await expect(avatarTiles).toHaveCount(14);
+    await expect(avatarTiles).toHaveCount(24);
 
-    // 3. Filter by Boys: Exactly 8 Boy avatars
+    // 3. Filter by Boys: Exactly 13 Boy avatars
     await page.locator('#tab-avatar-boys').click();
     const boyTiles = page.locator('.avatar-choice-tile');
-    await expect(boyTiles).toHaveCount(8);
+    await expect(boyTiles).toHaveCount(13);
 
-    // 4. Filter by Girls: Exactly 6 Girl avatars
+    // 4. Filter by Girls: Exactly 11 Girl avatars
     await page.locator('#tab-avatar-girls').click();
     const girlTiles = page.locator('.avatar-choice-tile');
-    await expect(girlTiles).toHaveCount(6);
+    await expect(girlTiles).toHaveCount(11);
 
     // 5. Select a girl avatar (e.g. girl_cyber)
     await girlTiles.first().click();
@@ -543,4 +552,197 @@ test.describe('Block Blaster Full Feature Verification', () => {
     await expect(careerModal).toBeHidden();
   });
 
+  test('Requirement 21: Selected Skin Applies on Dock Blocks Below (.shape-cell.filled) and Drag Avatar', async ({ page }) => {
+    // Start Classic Mode
+    await page.locator('#btn-mode-classic').click();
+    await expect(page.locator('#screen-gameplay')).toBeVisible();
+
+    // Verify dock blocks have .shape-cell.filled
+    const dockFilledCells = page.locator('.shape-cell.filled');
+    await expect(dockFilledCells.first()).toBeVisible();
+
+    // Equip royal skin programmatically
+    await page.evaluate(() => {
+      if (!window.__skinManager.unlocked.includes('royal')) {
+        window.__skinManager.unlocked.push('royal');
+      }
+      window.__skinManager.equipSkin('royal');
+    });
+
+    // Check that document body has skin-royal
+    const bodyClass = await page.evaluate(() => document.body.className);
+    expect(bodyClass).toContain('skin-royal');
+
+    // Verify dock cell inherits royal gradient styling via CSS
+    const dockBg = await dockFilledCells.first().evaluate(el => window.getComputedStyle(el).backgroundImage);
+    expect(dockBg).toContain('linear-gradient');
+  });
+
+  test('Requirement 22: Skin and Character PFP Purchases Persist Across Page Refresh', async ({ page }) => {
+    // Give coins and unlock a premium skin and avatar
+    await page.evaluate(() => {
+      window.__wallet.addCoins(50000);
+      window.__skinManager.buySkin('obsidian');
+      window.__profileManager.buyAvatar('boy_thunder');
+      window.__profileManager.setPfp('boy_thunder');
+    });
+
+    // Verify unlocked state before reload
+    const skinUnlockedBefore = await page.evaluate(() => window.__skinManager.isUnlocked('obsidian'));
+    const pfpUnlockedBefore = await page.evaluate(() => window.__profileManager.isAvatarUnlocked('boy_thunder'));
+    const currentPfpBefore = await page.evaluate(() => window.__profileManager.getPfp());
+    expect(skinUnlockedBefore).toBe(true);
+    expect(pfpUnlockedBefore).toBe(true);
+    expect(currentPfpBefore).toBe('boy_thunder');
+
+    // Reload the page
+    await page.reload();
+    await page.waitForSelector('#screen-home.active', { timeout: 8000 });
+
+    // Verify unlocked state and equipped state PERSISTS after reload
+    const skinUnlockedAfter = await page.evaluate(() => window.__skinManager.isUnlocked('obsidian'));
+    const currentSkinAfter = await page.evaluate(() => window.__skinManager.getCurrentSkinId());
+    const pfpUnlockedAfter = await page.evaluate(() => window.__profileManager.isAvatarUnlocked('boy_thunder'));
+    const currentPfpAfter = await page.evaluate(() => window.__profileManager.getPfp());
+
+    expect(skinUnlockedAfter).toBe(true);
+    expect(currentSkinAfter).toBe('obsidian');
+    expect(pfpUnlockedAfter).toBe(true);
+    expect(currentPfpAfter).toBe('boy_thunder');
+
+    const bodyClass = await page.evaluate(() => document.body.className);
+    expect(bodyClass).toContain('skin-obsidian');
+  });
+
+  test('Requirement 23: Professional Unified Shop with Block Skins and Character PFPs Tabs', async ({ page }) => {
+    // Open Shop via #btn-skin-shop (Shop button)
+    await page.locator('#btn-skin-shop').click();
+    const shopModal = page.locator('#skin-shop-modal');
+    await expect(shopModal).toBeVisible();
+
+    // Verify shop tabs exist
+    const skinsTab = page.locator('#shop-tab-skins');
+    const pfpsTab = page.locator('#shop-tab-pfps');
+    await expect(skinsTab).toBeVisible();
+    await expect(pfpsTab).toBeVisible();
+
+    // Skins panel active by default
+    await expect(page.locator('#shop-view-skins')).toBeVisible();
+    await expect(page.locator('#shop-view-pfps')).toBeHidden();
+
+    // Switch to PFPs tab
+    await pfpsTab.click();
+    await expect(page.locator('#shop-view-pfps')).toBeVisible();
+    await expect(page.locator('#shop-view-skins')).toBeHidden();
+
+    // Verify PFP cards rendered (24 total)
+    const pfpCards = page.locator('.shop-pfp-card');
+    await expect(pfpCards).toHaveCount(24);
+
+    // Switch gender filter to Boys: 13
+    await page.locator('#shop-filter-boys').click();
+    await expect(page.locator('.shop-pfp-card')).toHaveCount(13);
+
+    // Switch gender filter to Girls: 11
+    await page.locator('#shop-filter-girls').click();
+    await expect(page.locator('.shop-pfp-card')).toHaveCount(11);
+
+    await page.locator('#skin-shop-close-btn').click();
+    await expect(shopModal).toBeHidden();
+  });
+
+  test('Requirement 24: In-Game Settings Retry Button Restarts Gameplay', async ({ page }) => {
+    // 1. Open settings from Home: Retry button MUST be hidden
+    await page.locator('#home-settings-btn').click();
+    const modal = page.locator('#settings-modal');
+    await expect(modal).toBeVisible();
+    const retryBtn = page.locator('#settings-retry-btn');
+    await expect(retryBtn).toBeHidden();
+    await page.locator('#settings-close-btn').click();
+    await expect(modal).toBeHidden();
+
+    // 2. Start game and open settings: Retry button MUST be visible
+    await page.locator('#btn-mode-classic').click();
+    await expect(page.locator('#screen-gameplay')).toBeVisible();
+
+    // Add score
+    await page.evaluate(() => {
+      window.__game.addScore(450);
+    });
+    await expect(page.locator('#game-score-display')).toHaveText('450');
+
+    // Open in-game settings
+    await page.locator('#game-settings-btn').click();
+    await expect(modal).toBeVisible();
+    await expect(retryBtn).toBeVisible();
+
+    // Click Retry
+    await retryBtn.click();
+    await expect(modal).toBeHidden();
+    await expect(page.locator('#screen-gameplay')).toBeVisible();
+
+    // Score should be reset to 0
+    await expect(page.locator('#game-score-display')).toHaveText('0');
+  });
+
+  test('Requirement 25: Header Spacing, Top Shortcuts Order & Logos', async ({ page }) => {
+    // 1. Header has space between name and coin indicator
+    const coinsPill = page.locator('#home-coins-pill');
+    await expect(coinsPill).toBeVisible();
+    const marginLeft = await coinsPill.evaluate(el => window.getComputedStyle(el).marginLeft);
+    expect(parseInt(marginLeft, 10)).toBeGreaterThanOrEqual(10);
+
+    // 2. Career, Shop, Daily Challenge shortcuts row placed above Level button
+    const shortcutsRow = page.locator('.home-shortcuts-row');
+    await expect(shortcutsRow).toBeVisible();
+
+    // Verify Career button has white trophy SVG and text
+    const careerBtn = page.locator('#btn-career-stats');
+    await expect(careerBtn).toBeVisible();
+    await expect(careerBtn.locator('.shortcut-label')).toHaveText('Career');
+    await expect(careerBtn.locator('svg')).toHaveAttribute('fill', '#ffffff');
+
+    // Verify Shop button has white cart SVG and text
+    const shopBtn = page.locator('#btn-skin-shop');
+    await expect(shopBtn).toBeVisible();
+    await expect(shopBtn.locator('.shortcut-label')).toHaveText('Shop');
+    await expect(shopBtn.locator('svg')).toHaveAttribute('fill', '#ffffff');
+
+    // Verify Daily Challenge button has white challenge SVG and text
+    const dailyBtn = page.locator('#btn-daily-challenge');
+    await expect(dailyBtn).toBeVisible();
+    await expect(dailyBtn.locator('.shortcut-label')).toHaveText('Daily Challenge');
+    await expect(dailyBtn.locator('svg')).toHaveAttribute('fill', '#ffffff');
+  });
+
+  test('Requirement 26: Adventure Level Win Gives 100 Coins Badge & Daily Challenge Modal Streamlined', async ({ page }) => {
+    // 1. Daily challenge modal has "Complete to unlock Mystery box" without date
+    await page.locator('#btn-daily-challenge').click();
+    const dailyModal = page.locator('#daily-challenge-modal');
+    await expect(dailyModal).toBeVisible();
+    const bannerSubtitle = page.locator('.daily-reward-hint');
+    await expect(bannerSubtitle).toHaveText('Complete to unlock Mystery box');
+    await page.locator('#daily-challenge-close-btn').click();
+
+    // 2. Adventure Level Complete awards 100 coins and shows "Got 100 coins"
+    await page.locator('#btn-mode-adventure').click();
+    await expect(page.locator('#screen-gameplay')).toBeVisible();
+
+    const coinsBefore = await page.evaluate(() => window.__wallet.getBalance());
+
+    await page.evaluate(() => {
+      window.__game.triggerLevelWin();
+    });
+
+    const winModal = page.locator('#level-win-modal');
+    await expect(winModal).toBeVisible();
+    const winRewardBadge = page.locator('#win-reward-badge');
+    await expect(winRewardBadge).toBeVisible();
+    await expect(winRewardBadge).toContainText('Got 100 coins');
+
+    const coinsAfter = await page.evaluate(() => window.__wallet.getBalance());
+    expect(coinsAfter).toBe(coinsBefore + 100);
+  });
+
 });
+
