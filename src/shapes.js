@@ -197,7 +197,7 @@ export const SHAPE_DEFINITIONS = [
       [0, 1]
     ]
   },
-  // 8. S & Z Shapes
+  // 8. S & Z Shapes (Horizontal & Vertical)
   {
     name: 'z-shape',
     color: 'color-pink',
@@ -214,7 +214,104 @@ export const SHAPE_DEFINITIONS = [
       [1, 1, 0]
     ]
   },
-  // 9. Plus Cross
+  // Reference Image 2: Vertical Z-Shape
+  {
+    name: 'z-shape-v',
+    color: 'color-pink',
+    matrix: [
+      [1, 0],
+      [1, 1],
+      [0, 1]
+    ]
+  },
+  // Vertical S-Shape
+  {
+    name: 's-shape-v',
+    color: 'color-emerald',
+    matrix: [
+      [0, 1],
+      [1, 1],
+      [1, 0]
+    ]
+  },
+  // 9. 4-Block L-Shapes / Tetromino L & J (Reference Folder Images 1, 3, 4, 5 & Rotations)
+  // Reference Image 1: Horizontal L (3 on top, 1 bottom-left)
+  {
+    name: 'l-shape-4-h-tl',
+    color: 'color-orange',
+    matrix: [
+      [1, 1, 1],
+      [1, 0, 0]
+    ]
+  },
+  // Horizontal L (3 on top, 1 bottom-right)
+  {
+    name: 'l-shape-4-h-tr',
+    color: 'color-orange',
+    matrix: [
+      [1, 1, 1],
+      [0, 0, 1]
+    ]
+  },
+  // Reference Image 3: Horizontal L (1 top-left, 3 on bottom)
+  {
+    name: 'l-shape-4-h-bl',
+    color: 'color-purple',
+    matrix: [
+      [1, 0, 0],
+      [1, 1, 1]
+    ]
+  },
+  // Horizontal L (1 top-right, 3 on bottom)
+  {
+    name: 'l-shape-4-h-br',
+    color: 'color-purple',
+    matrix: [
+      [0, 0, 1],
+      [1, 1, 1]
+    ]
+  },
+  // Reference Image 4: Vertical L (3 on left, 1 bottom-right)
+  {
+    name: 'l-shape-4-v-bl',
+    color: 'color-cyan',
+    matrix: [
+      [1, 0],
+      [1, 0],
+      [1, 1]
+    ]
+  },
+  // Vertical L (3 on right, 1 bottom-left)
+  {
+    name: 'l-shape-4-v-br',
+    color: 'color-cyan',
+    matrix: [
+      [0, 1],
+      [0, 1],
+      [1, 1]
+    ]
+  },
+  // Reference Image 5: Vertical L (2 on top, 2 below on left)
+  {
+    name: 'l-shape-4-v-tl',
+    color: 'color-gold',
+    matrix: [
+      [1, 1],
+      [1, 0],
+      [1, 0]
+    ]
+  },
+  // Vertical L (2 on top, 2 below on right)
+  {
+    name: 'l-shape-4-v-tr',
+    color: 'color-gold',
+    matrix: [
+      [1, 1],
+      [0, 1],
+      [0, 1]
+    ]
+  },
+  // 10. Plus Cross
   {
     name: 'cross',
     color: 'color-pink',

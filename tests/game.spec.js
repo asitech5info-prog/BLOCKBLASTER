@@ -192,6 +192,30 @@ test.describe('Block Blaster Full Feature Verification', () => {
     expect(shapeNames).toContain('square-3');
   });
 
+  test('Requirement 8b: Includes all reference folder blocks (vertical Z and 4-block L shapes)', async () => {
+    const shapeMap = new Map(SHAPE_DEFINITIONS.map(s => [s.name, s.matrix]));
+
+    // Image 1: [ [1, 1, 1], [1, 0, 0] ]
+    expect(shapeMap.has('l-shape-4-h-tl')).toBe(true);
+    expect(shapeMap.get('l-shape-4-h-tl')).toEqual([[1, 1, 1], [1, 0, 0]]);
+
+    // Image 2: [ [1, 0], [1, 1], [0, 1] ]
+    expect(shapeMap.has('z-shape-v')).toBe(true);
+    expect(shapeMap.get('z-shape-v')).toEqual([[1, 0], [1, 1], [0, 1]]);
+
+    // Image 3: [ [1, 0, 0], [1, 1, 1] ]
+    expect(shapeMap.has('l-shape-4-h-bl')).toBe(true);
+    expect(shapeMap.get('l-shape-4-h-bl')).toEqual([[1, 0, 0], [1, 1, 1]]);
+
+    // Image 4: [ [1, 0], [1, 0], [1, 1] ]
+    expect(shapeMap.has('l-shape-4-v-bl')).toBe(true);
+    expect(shapeMap.get('l-shape-4-v-bl')).toEqual([[1, 0], [1, 0], [1, 1]]);
+
+    // Image 5: [ [1, 1], [1, 0], [1, 0] ]
+    expect(shapeMap.has('l-shape-4-v-tl')).toBe(true);
+    expect(shapeMap.get('l-shape-4-v-tl')).toEqual([[1, 1], [1, 0], [1, 0]]);
+  });
+
   test('Requirement 9: Game Over Screen has 5-Second Countdown Timer before Retry Option', async ({ page }) => {
     await page.locator('#btn-mode-classic').click();
 
@@ -315,6 +339,208 @@ test.describe('Block Blaster Full Feature Verification', () => {
     // Now Level 5 unlocked (4 levels solved: 4/96 -> 4%)
     await expect(page.locator('#home-adventure-level-text')).toHaveText('Level 5');
     await expect(pctText).toHaveText('4%');
+  });
+
+  test('Requirement 14: Skin Shop & BB Coin Economy (Earn, Buy, Equip Skins)', async ({ page }) => {
+    // 1. Verify Home screen displays BB Coin counter
+    const coinsPill = page.locator('#home-coins-pill');
+    await expect(coinsPill).toBeVisible();
+    await expect(page.locator('.bb-coin-amount').first()).toBeVisible();
+
+    // 2. Open Skin Shop
+    await page.locator('#btn-skin-shop').click();
+    const shopModal = page.locator('#skin-shop-modal');
+    await expect(shopModal).toBeVisible();
+
+    // 3. Verify skins grid rendered with skins (Classic, Biscuit, Cheese, Candy, etc.)
+    const skinCards = page.locator('.skin-card');
+    await expect(skinCards).toHaveCount(8);
+
+    // 4. Buy and equip the Crispy Biscuit skin (150 coins)
+    await page.evaluate(() => {
+      window.__wallet.addCoins(200); // Ensure ample balance
+      window.__skinManager.buySkin('biscuit');
+    });
+
+    // Verify Biscuit skin applied to document body
+    const bodyClass = await page.evaluate(() => document.body.className);
+    expect(bodyClass).toContain('skin-biscuit');
+
+    // 5. Close Skin Shop
+    await page.locator('#skin-shop-close-btn').click();
+    await expect(shopModal).toBeHidden();
+  });
+
+  test('Requirement 15: Adventure Levels Scaled to 1000 & Earns BB Coins', async ({ page }) => {
+    // 1. Verify AdventureManager maxLevel is 1000
+    const maxLevel = await page.evaluate(() => window.__adventure.maxLevel);
+    expect(maxLevel).toBe(1000);
+
+    // 2. Verify level data generation for high levels up to 1000
+    const lvl1000 = await page.evaluate(() => window.__adventure.getLevelData(1000));
+    expect(lvl1000.level).toBe(1000);
+    expect(lvl1000.totalTarget).toBeGreaterThan(0);
+    expect(lvl1000.initialBoard).toHaveLength(8);
+
+    // 3. Verify completing an Adventure level awards BB Coins
+    const initialCoins = await page.evaluate(() => window.__wallet.getBalance());
+    await page.evaluate(() => {
+      window.__adventure.completeLevel(5, 500);
+    });
+    const updatedCoins = await page.evaluate(() => window.__wallet.getBalance());
+    expect(updatedCoins).toBeGreaterThan(initialCoins);
+  });
+
+  test('Requirement 16: Revive Option Restores Board Space on Game Over', async ({ page }) => {
+    // Start classic game
+    await page.locator('#btn-mode-classic').click();
+    await expect(page.locator('#screen-gameplay')).toBeVisible();
+
+    // Trigger game over programmatically
+    await page.evaluate(() => {
+      window.__game.triggerGameOver();
+    });
+
+    await expect(page.locator('#screen-game-over')).toBeVisible();
+    const reviveBtn = page.locator('#death-revive-btn');
+    await expect(reviveBtn).toBeVisible();
+
+    // Click Revive
+    await reviveBtn.click();
+
+    // Gameplay screen is restored
+    await expect(page.locator('#screen-gameplay')).toBeVisible();
+    await expect(page.locator('#screen-game-over')).toBeHidden();
+
+    // Verify center 4x4 area was cleared for fresh moves
+    const centerEmpty = await page.evaluate(() => {
+      const g = window.__game;
+      return g.board[3][3] === null && g.board[4][4] === null;
+    });
+    expect(centerEmpty).toBe(true);
+  });
+
+  test('Requirement 17: Tactile Haptic Vibration and Controls Settings', async ({ page }) => {
+    // Open Settings
+    await page.locator('#home-settings-btn').click();
+    await expect(page.locator('#settings-modal')).toBeVisible();
+
+    // 1. Verify Haptics toggle button exists and functions
+    const hapticBtn = page.locator('#settings-haptics-btn');
+    await expect(hapticBtn).toBeVisible();
+
+    // Toggle haptics
+    await hapticBtn.click();
+    const isMuted = await hapticBtn.evaluate(el => el.classList.contains('muted'));
+    expect(isMuted).toBe(true);
+
+    // 2. Verify Intensity Buttons
+    const strongBtn = page.locator('#btn-intensity-heavy');
+    await strongBtn.click();
+    const intensity = await page.evaluate(() => window.__haptics.getIntensity());
+    expect(intensity).toBe('heavy');
+
+    // 3. Verify Touch Drag Offset Setting
+    const directBtn = page.locator('#btn-offset-direct');
+    await directBtn.click();
+    const offsetMode = await page.evaluate(() => window.__haptics.getTouchOffsetMode());
+    expect(offsetMode).toBe('direct');
+
+    await page.locator('#settings-close-btn').click();
+  });
+
+  test('Requirement 18: Daily Challenge & Mystery Chest Scaled to Complexity', async ({ page }) => {
+    // Open Daily Challenge
+    await page.locator('#btn-daily-challenge').click();
+    const dailyModal = page.locator('#daily-challenge-modal');
+    await expect(dailyModal).toBeVisible();
+
+    // Verify 4 challenge missions exist (Easy, Medium, Hard, Extreme)
+    const missionCards = page.locator('.daily-item-card');
+    await expect(missionCards).toHaveCount(4);
+
+    // Programmatically complete the easy challenge and claim bronze chest
+    await page.evaluate(() => {
+      const daily = window.__dailyChallenge;
+      daily.recordEvent('blocksPlaced', 100);
+      window.__game.renderDailyChallenge();
+    });
+
+    const claimBtn = page.locator('.btn-claim-ready').first();
+    await expect(claimBtn).toBeVisible();
+    await claimBtn.click();
+
+    // Mystery chest modal appears
+    const chestModal = page.locator('#chest-open-modal');
+    await expect(chestModal).toBeVisible();
+
+    // Open chest action
+    const chestActionBtn = page.locator('#chest-action-btn');
+    await chestActionBtn.click();
+    await expect(page.locator('#chest-reward-display')).toBeVisible();
+
+    // Collect reward
+    await chestActionBtn.click();
+    await expect(chestModal).toBeHidden();
+
+    // Close daily modal
+    await page.locator('#daily-challenge-close-btn').click();
+  });
+
+  test('Requirement 19: Player Profile Custom Name and 8 Boy + 6 Girl Animated PFPs', async ({ page }) => {
+    // Open profile modal via topbar profile pill
+    await page.locator('#home-profile-pill').click();
+    const profileModal = page.locator('#profile-modal');
+    await expect(profileModal).toBeVisible();
+
+    // 1. Change Player Name
+    const nameInput = page.locator('#profile-name-input');
+    await nameInput.fill('Super Blaster');
+    await page.locator('#profile-name-save-btn').click();
+
+    const storedName = await page.evaluate(() => window.__profileManager.getName());
+    expect(storedName).toBe('Super Blaster');
+
+    // 2. Verify all 14 animated character PFPs rendered
+    const avatarTiles = page.locator('.avatar-choice-tile');
+    await expect(avatarTiles).toHaveCount(14);
+
+    // 3. Filter by Boys: Exactly 8 Boy avatars
+    await page.locator('#tab-avatar-boys').click();
+    const boyTiles = page.locator('.avatar-choice-tile');
+    await expect(boyTiles).toHaveCount(8);
+
+    // 4. Filter by Girls: Exactly 6 Girl avatars
+    await page.locator('#tab-avatar-girls').click();
+    const girlTiles = page.locator('.avatar-choice-tile');
+    await expect(girlTiles).toHaveCount(6);
+
+    // 5. Select a girl avatar (e.g. girl_cyber)
+    await girlTiles.first().click();
+    const pfp = await page.evaluate(() => window.__profileManager.getPfp());
+    expect(pfp).toBe('girl_cyber');
+
+    await page.locator('#profile-close-btn').click();
+    await expect(profileModal).toBeHidden();
+  });
+
+  test('Requirement 20: Career Statistics & Lifetime Records Display', async ({ page }) => {
+    // Open Career Records
+    await page.locator('#btn-career-stats').click();
+    const careerModal = page.locator('#career-modal');
+    await expect(careerModal).toBeVisible();
+
+    // Verify career stat cards exist and display numbers
+    await expect(page.locator('#c-stat-best-score')).toBeVisible();
+    await expect(page.locator('#c-stat-highest-combo')).toBeVisible();
+    await expect(page.locator('#c-stat-rounds')).toBeVisible();
+    await expect(page.locator('#c-stat-blocks')).toBeVisible();
+    await expect(page.locator('#c-stat-lines')).toBeVisible();
+    await expect(page.locator('#c-stat-adventure')).toContainText('1000');
+    await expect(page.locator('#c-stat-coins')).toBeVisible();
+
+    await page.locator('#career-close-btn').click();
+    await expect(careerModal).toBeHidden();
   });
 
 });

@@ -1,5 +1,8 @@
 // Adventure Mode Manager for Block Blaster
-// Authentic handcrafted puzzle layouts & 96-Level progression matching reference screenshots
+// Authentic handcrafted puzzle layouts & 1000-Level progression with dynamic layouts and BB Coin rewards
+import { wallet } from './coins.js';
+
+export const MAX_ADVENTURE_LEVEL = 1000;
 
 export const ADVENTURE_SILHOUETTE_ROWS = [
   [94, 95, 96],
@@ -19,22 +22,23 @@ export const ADVENTURE_SILHOUETTE_ROWS = [
 
 export class AdventureManager {
   constructor() {
+    this.maxLevel = MAX_ADVENTURE_LEVEL;
     this.unlockedLevel = parseInt(localStorage.getItem('bb_unlocked_level') || '1', 10);
     this.currentLevel = parseInt(localStorage.getItem('bb_current_level') || '1', 10);
     this.levelStars = JSON.parse(localStorage.getItem('bb_level_stars') || '{}');
   }
 
   getCurrentLevel() {
-    return Math.min(96, Math.max(1, this.currentLevel));
+    return Math.min(this.maxLevel, Math.max(1, this.currentLevel));
   }
 
   setCurrentLevel(lvl) {
-    this.currentLevel = Math.min(96, Math.max(1, lvl));
+    this.currentLevel = Math.min(this.maxLevel, Math.max(1, lvl));
     localStorage.setItem('bb_current_level', String(this.currentLevel));
   }
 
   getLevelData(levelNum) {
-    const lvl = Math.min(96, Math.max(1, levelNum));
+    const lvl = Math.min(this.maxLevel, Math.max(1, levelNum));
     const initialBoard = Array.from({ length: 8 }, () => Array(8).fill(null));
 
     // Level 1: Tree / Anchor Shape with 90 Blue Diamonds (WhatsApp Image 2026-10-05 at 10.22.09 AM.jpeg)
@@ -69,7 +73,6 @@ export class AdventureManager {
 
     // Level 2: Wings / Cat Pattern with Red Stars (56) & Orange Pentagons (54) (WhatsApp Image 2026-10-05 at 10.22.09 AM (2).jpeg)
     if (lvl === 2) {
-      // Golden outer frame with embedded red and orange gems + purple eyes
       const goldFrame = [
         [0, 0], [0, 7],
         [1, 0], [1, 1], [1, 5], [1, 6], [1, 7],
@@ -83,7 +86,6 @@ export class AdventureManager {
         initialBoard[r][c] = { color: 'color-gold', hasDiamond: false };
       });
 
-      // Red star gems
       const redStarCoords = [
         [0, 5], [1, 5], [1, 6], [2, 6], [2, 7], [3, 6]
       ];
@@ -93,11 +95,9 @@ export class AdventureManager {
         }
       });
 
-      // Orange pentagon gems at bottom
       initialBoard[6][3] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-orange' };
       initialBoard[6][4] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-orange' };
 
-      // Purple eye blocks
       initialBoard[3][2] = { color: 'color-purple', hasDiamond: false };
       initialBoard[3][5] = { color: 'color-purple', hasDiamond: false };
 
@@ -111,31 +111,26 @@ export class AdventureManager {
       };
     }
 
-    // Level 3: Pillars & Cross Pattern with Red Stars (18) & Orange Pentagons (19) (WhatsApp Image 2026-10-05 at 10.22.10 AM.jpeg)
+    // Level 3: Pillars & Cross Pattern with Red Stars (18) & Orange Pentagons (19)
     if (lvl === 3) {
-      // Top corner block
       initialBoard[0][7] = { color: 'color-gold', hasDiamond: false };
 
-      // Left pillar with orange pentagons and green core
       initialBoard[1][0] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-orange' };
       initialBoard[2][0] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-orange' };
       initialBoard[2][1] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-orange' };
       initialBoard[3][0] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-orange' };
 
-      // Green center block
       initialBoard[4][1] = { color: 'color-green', hasDiamond: false };
       initialBoard[5][0] = { color: 'color-green', hasDiamond: false };
       initialBoard[5][2] = { color: 'color-green', hasDiamond: false };
       initialBoard[6][1] = { color: 'color-green', hasDiamond: false };
 
-      // Red star accents on left
       initialBoard[4][0] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-star' };
       initialBoard[4][2] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-star' };
       initialBoard[5][1] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-star' };
       initialBoard[6][0] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-star' };
       initialBoard[6][2] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-star' };
 
-      // Right pillar with orange pentagon & red stars
       initialBoard[2][6] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-orange' };
       initialBoard[3][6] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-star' };
       initialBoard[4][6] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-star' };
@@ -152,9 +147,8 @@ export class AdventureManager {
       };
     }
 
-    // Level 4: Butterfly / Wings Pattern with 3 Gem Types (WhatsApp Image 2026-10-05 at 10.22.10 AM (1).jpeg)
+    // Level 4: Butterfly / Wings Pattern with 3 Gem Types
     if (lvl === 4) {
-      // Cyan wing tips
       const cyanWings = [
         [1, 1], [1, 6],
         [2, 0], [2, 1], [2, 6], [2, 7],
@@ -165,11 +159,9 @@ export class AdventureManager {
         initialBoard[r][c] = { color: 'color-cyan', hasDiamond: false };
       });
 
-      // Gold center body with orange pentagon and star gems
       initialBoard[2][3] = { color: 'color-gold', hasDiamond: false };
       initialBoard[2][4] = { color: 'color-gold', hasDiamond: false };
 
-      // Gems in center
       initialBoard[3][1] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-blue' };
       initialBoard[3][3] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-orange' };
       initialBoard[3][4] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-star' };
@@ -183,7 +175,6 @@ export class AdventureManager {
       initialBoard[5][3] = { color: 'color-gold', hasDiamond: false };
       initialBoard[5][4] = { color: 'color-gold', hasDiamond: false };
 
-      // Bottom bar with blue gems & green blocks
       initialBoard[6][1] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-blue' };
       initialBoard[6][2] = { color: 'color-green', hasDiamond: false };
       initialBoard[6][3] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-blue' };
@@ -200,14 +191,18 @@ export class AdventureManager {
       };
     }
 
-    // Procedural Handcrafted Layouts for Level 5 to 96
-    const patternType = lvl % 5;
-    const blueGoal = 15 + Math.floor(lvl * 1.5);
-    const orangeGoal = 12 + Math.floor(lvl * 1.2);
-    const starGoal = lvl % 2 === 0 ? 10 + Math.floor(lvl * 1.1) : 0;
+    // Procedural Balanced Layouts for Levels 5 to 1000
+    const patternType = lvl % 8;
+    const cycle = (lvl - 1) % 40;
+    const worldIndex = Math.floor((lvl - 1) / 100);
+
+    // Balanced, solvable gem targets up to level 1000
+    const blueGoal = Math.min(85, 20 + Math.floor(cycle * 0.8) + worldIndex * 3);
+    const orangeGoal = Math.min(75, 15 + Math.floor(cycle * 0.6) + worldIndex * 3);
+    const starGoal = lvl % 2 === 0 ? Math.min(65, 12 + Math.floor(cycle * 0.5) + worldIndex * 2) : 0;
 
     if (patternType === 0) {
-      // Pyramid layout
+      // Pyramid Temple
       for (let r = 2; r <= 6; r++) {
         const start = 4 - (r - 2);
         const end = 3 + (r - 2);
@@ -224,7 +219,7 @@ export class AdventureManager {
         }
       }
     } else if (patternType === 1) {
-      // Checkerboard Fortress layout
+      // Checkerboard Fortress
       for (let r = 1; r < 7; r++) {
         for (let c = 1; c < 7; c++) {
           if ((r === 1 || r === 6 || c === 1 || c === 6 || (r === 3 && c === 3) || (r === 4 && c === 4))) {
@@ -239,7 +234,7 @@ export class AdventureManager {
         }
       }
     } else if (patternType === 2) {
-      // Diamond Ring layout
+      // Diamond Ring
       const ringCoords = [
         [1, 3], [1, 4],
         [2, 2], [2, 5],
@@ -257,7 +252,7 @@ export class AdventureManager {
         };
       });
     } else if (patternType === 3) {
-      // Twin Towers layout
+      // Twin Towers & Gate
       for (let r = 2; r <= 6; r++) {
         initialBoard[r][1] = { color: 'color-gold', hasDiamond: r % 2 === 0, diamondType: 'diamond-blue' };
         initialBoard[r][2] = { color: 'color-cyan', hasDiamond: false };
@@ -266,14 +261,45 @@ export class AdventureManager {
       }
       initialBoard[6][3] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-orange' };
       initialBoard[6][4] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-orange' };
-    } else {
-      // Cross / Star layout
+    } else if (patternType === 4) {
+      // Star Cross
       for (let i = 1; i <= 6; i++) {
         initialBoard[i][3] = { color: 'color-gold', hasDiamond: i % 2 !== 0, diamondType: 'diamond-blue' };
         initialBoard[i][4] = { color: 'color-gold', hasDiamond: i % 2 !== 0, diamondType: 'diamond-orange' };
         initialBoard[3][i] = { color: 'color-gold', hasDiamond: i % 2 === 0, diamondType: 'diamond-star' };
         initialBoard[4][i] = { color: 'color-gold', hasDiamond: i % 2 === 0, diamondType: 'diamond-blue' };
       }
+    } else if (patternType === 5) {
+      // Spiral Crown
+      const crownCoords = [
+        [1, 1], [1, 6], [2, 2], [2, 5], [3, 3], [3, 4],
+        [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6]
+      ];
+      crownCoords.forEach(([r, c]) => {
+        const gem = (r % 2 === 0) ? 'diamond-blue' : 'diamond-orange';
+        initialBoard[r][c] = { color: 'color-gold', hasDiamond: true, diamondType: gem };
+      });
+    } else if (patternType === 6) {
+      // Double Diamond
+      const dCoords = [
+        [0, 3], [1, 2], [1, 4], [2, 1], [2, 5], [3, 2], [3, 4], [4, 3],
+        [4, 4], [5, 3], [5, 5], [6, 4]
+      ];
+      dCoords.forEach(([r, c]) => {
+        if (r < 8 && c < 8) {
+          initialBoard[r][c] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-blue' };
+        }
+      });
+    } else {
+      // Hourglass Nexus
+      for (let c = 1; c <= 6; c++) {
+        initialBoard[1][c] = { color: 'color-gold', hasDiamond: c % 2 === 0, diamondType: 'diamond-orange' };
+        initialBoard[6][c] = { color: 'color-gold', hasDiamond: c % 2 === 0, diamondType: 'diamond-blue' };
+      }
+      initialBoard[3][3] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-star' };
+      initialBoard[3][4] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-star' };
+      initialBoard[4][3] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-star' };
+      initialBoard[4][4] = { color: 'color-gold', hasDiamond: true, diamondType: 'diamond-star' };
     }
 
     return {
@@ -290,13 +316,17 @@ export class AdventureManager {
     this.levelStars[levelNum] = 3;
     localStorage.setItem('bb_level_stars', JSON.stringify(this.levelStars));
 
-    const nextLvl = Math.min(96, levelNum + 1);
+    const nextLvl = Math.min(this.maxLevel, levelNum + 1);
     if (nextLvl > this.unlockedLevel) {
       this.unlockedLevel = nextLvl;
       localStorage.setItem('bb_unlocked_level', String(this.unlockedLevel));
     }
     this.currentLevel = nextLvl;
     localStorage.setItem('bb_current_level', String(this.currentLevel));
+
+    // Award BB Coins for playing and winning Adventure levels
+    const coinsReward = 50 + Math.min(100, Math.floor(levelNum / 10) * 5);
+    wallet.addCoins(coinsReward, `Adventure Level ${levelNum} Completed`);
   }
 
   isLevelUnlocked(levelNum) {

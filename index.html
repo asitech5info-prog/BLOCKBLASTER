@@ -51,7 +51,20 @@
       <!-- ================= 2. HOMEPAGE SCREEN (Matching WhatsApp Image 2026-10-05 at 10.22.43 AM.jpeg) ================= -->
       <section id="screen-home" class="screen screen-home hidden">
         <header class="home-topbar">
+          <!-- Player Profile Pill with Animated Avatar & Name -->
+          <button id="home-profile-pill" class="home-profile-pill" aria-label="Profile" title="Player Profile">
+            <div class="player-avatar-slot avatar-mini"></div>
+            <span class="player-name-display profile-pill-name">Block Master</span>
+          </button>
+
+          <!-- BB Coins Counter Pill -->
+          <button id="home-coins-pill" class="home-coins-pill" aria-label="BB Coins Wallet" title="Skin Shop">
+            <span class="bb-coin-icon">🪙</span>
+            <span class="bb-coin-amount">250</span>
+          </button>
+
           <div class="topbar-spacer"></div>
+
           <!-- Settings Icon: Crisp White Gear -->
           <button id="home-settings-btn" class="gear-btn white-btn" aria-label="Settings" title="Settings">
             <svg class="gear-svg" viewBox="0 0 24 24" width="28" height="28" fill="#ffffff">
@@ -114,7 +127,25 @@
             </div>
             <span class="pill-text-large">Classic</span>
           </button>
+        </div>
 
+        <!-- Quick Access Feature Shortcuts: Skin Shop, Daily Challenge, Career Records -->
+        <div class="home-shortcuts-row">
+          <button id="btn-skin-shop" class="home-shortcut-btn" title="Skin Shop" data-testid="btn-skin-shop">
+            <span class="shortcut-icon">🛍️</span>
+            <span class="shortcut-label">Skins</span>
+          </button>
+
+          <button id="btn-daily-challenge" class="home-shortcut-btn" title="Daily Challenge" data-testid="btn-daily-challenge">
+            <span class="shortcut-icon">📅</span>
+            <span class="shortcut-label">Daily</span>
+            <span class="daily-reward-badge hidden">!</span>
+          </button>
+
+          <button id="btn-career-stats" class="home-shortcut-btn" title="Career Records" data-testid="btn-career-stats">
+            <span class="shortcut-icon">📊</span>
+            <span class="shortcut-label">Career</span>
+          </button>
         </div>
       </section>
 
@@ -321,6 +352,15 @@
             <span class="countdown-label">Retry ready in <strong id="death-timer-sec-text">5s</strong></span>
           </div>
 
+          <!-- Revive Second-Chance Option (Uses BB Coins to clear grid & resume!) -->
+          <div id="death-revive-box" class="death-revive-box">
+            <button id="death-revive-btn" class="revive-pill-btn" data-testid="death-revive-btn">
+              <span class="revive-bolt">⚡</span>
+              <span>Revive (50 🪙)</span>
+            </button>
+            <span class="revive-hint">Clears 16 blocks &amp; keeps your score!</span>
+          </div>
+
           <div class="death-actions">
             <div class="play-btn-wrapper">
               <span id="compliment-badge" class="compliment-badge">Good!</span>
@@ -381,7 +421,7 @@
             <button id="settings-close-btn" class="modal-close-btn" aria-label="Close Settings">✕</button>
           </div>
 
-          <!-- Sound & BGM Toggle Buttons: White Icons with Red Slash Line when Pressed/Muted -->
+          <!-- Sound, BGM & Haptic Toggle Buttons: White Icons with Red Slash Line when Pressed/Muted -->
           <div class="settings-audio-row">
             <button id="settings-sound-btn" class="audio-toggle-btn" aria-label="Toggle Sound">
               <div class="audio-icon-wrap" id="sound-icon-wrap">
@@ -402,6 +442,36 @@
               </div>
               <span class="audio-label">BGM</span>
             </button>
+
+            <button id="settings-haptics-btn" class="audio-toggle-btn" aria-label="Toggle Haptics" data-testid="settings-haptics-btn">
+              <div class="audio-icon-wrap" id="haptics-icon-wrap">
+                <svg class="audio-svg" viewBox="0 0 24 24" width="38" height="38" fill="#ffffff">
+                  <path d="M0 15h2V9H0v6zm3 2h2V7H3v10zm19-8v6h2V9h-2zm-3 8h2V7h-2v10zM16.5 3h-9C6.67 3 6 3.67 6 4.5v15c0 .83.67 1.5 1.5 1.5h9c.83 0 1.5-.67 1.5-1.5v-15c0-.83-.67-1.5-1.5-1.5zM16 19H8V5h8v14z"/>
+                </svg>
+                <div class="red-slash-line"></div>
+              </div>
+              <span class="audio-label">Haptic</span>
+            </button>
+          </div>
+
+          <!-- Tactile & Controls Settings Sub-Panel -->
+          <div class="settings-controls-box">
+            <div class="settings-subgroup">
+              <span class="subgroup-label">Vibration Intensity:</span>
+              <div class="segmented-control" id="haptic-intensity-control">
+                <button class="seg-btn" data-val="light" id="btn-intensity-light">Light</button>
+                <button class="seg-btn active" data-val="medium" id="btn-intensity-medium">Med</button>
+                <button class="seg-btn" data-val="heavy" id="btn-intensity-heavy">Strong</button>
+              </div>
+            </div>
+
+            <div class="settings-subgroup">
+              <span class="subgroup-label">Touch Drag Offset:</span>
+              <div class="segmented-control" id="touch-offset-control">
+                <button class="seg-btn active" data-val="above" id="btn-offset-above" title="Piece lifted above finger for clear view">Above Finger</button>
+                <button class="seg-btn" data-val="direct" id="btn-offset-direct" title="Piece directly under touch">Direct</button>
+              </div>
+            </div>
           </div>
 
           <!-- Green Action Buttons matching Reference Image -->
@@ -622,6 +692,196 @@
             <button id="about-gotit-btn" class="green-pill-btn about-ok-btn">
               <span>🚀 Got It, Let's Play!</span>
             </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 14. SKIN SHOP MODAL ================= -->
+      <div id="skin-shop-modal" class="modal-overlay hidden" data-testid="skin-shop-modal">
+        <div class="modal-card skin-shop-card">
+          <div class="shop-header">
+            <div class="shop-title-wrap">
+              <span class="shop-header-icon">🛍️</span>
+              <h2 class="settings-title">Skin Shop</h2>
+            </div>
+            <!-- BB Coin balance in shop -->
+            <div class="shop-coin-badge">
+              <span class="bb-coin-icon">🪙</span>
+              <span class="bb-coin-amount">250</span>
+            </div>
+            <button id="skin-shop-close-btn" class="modal-close-btn" aria-label="Close Shop">✕</button>
+          </div>
+          <p class="shop-subtitle">Unlock custom styles with BB Coins earned in Adventure &amp; Challenges!</p>
+          <div id="skins-grid" class="skins-grid">
+            <!-- Dynamically populated skins -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 15. DAILY CHALLENGE MODAL ================= -->
+      <div id="daily-challenge-modal" class="modal-overlay hidden" data-testid="daily-challenge-modal">
+        <div class="modal-card daily-challenge-card">
+          <div class="settings-header">
+            <div class="shop-title-wrap">
+              <span class="shop-header-icon">📅</span>
+              <h2 class="settings-title">Daily Challenge</h2>
+            </div>
+            <button id="daily-challenge-close-btn" class="modal-close-btn" aria-label="Close Daily Challenge">✕</button>
+          </div>
+          <div class="daily-date-banner">
+            <span id="daily-current-date-text">Today's Challenges</span>
+            <span class="daily-reward-hint">Complete to unlock Mystery Chests!</span>
+          </div>
+          <div id="daily-challenges-list" class="daily-challenges-list">
+            <!-- Dynamically populated 4 tiers of daily challenges -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 16. MYSTERY CHEST OPEN MODAL ================= -->
+      <div id="chest-open-modal" class="modal-overlay hidden" data-testid="chest-open-modal">
+        <div class="modal-card chest-card">
+          <div class="chest-presentation-wrap">
+            <div class="chest-ambient-glow" id="chest-glow"></div>
+            <div id="chest-stage" class="chest-3d-stage">
+              <div id="chest-box-icon" class="chest-box-icon">🎁</div>
+            </div>
+            <h2 id="chest-title-text" class="chest-title">Mystery Chest!</h2>
+            <p id="chest-desc-text" class="chest-desc">Tap to burst open and claim your BB Coins!</p>
+
+            <div id="chest-reward-display" class="chest-reward-display hidden">
+              <div class="reward-coins-banner">
+                <span class="reward-coin-big">🪙</span>
+                <span id="chest-reward-amount" class="reward-amount-num">+250</span>
+                <span class="reward-coin-unit">BB Coins</span>
+              </div>
+            </div>
+
+            <div class="chest-actions">
+              <button id="chest-action-btn" class="green-pill-btn chest-btn">Open Chest!</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 17. PLAYER PROFILE & AVATAR PICKER MODAL ================= -->
+      <div id="profile-modal" class="modal-overlay hidden" data-testid="profile-modal">
+        <div class="modal-card profile-card">
+          <div class="settings-header">
+            <h2 class="settings-title">Player Profile</h2>
+            <button id="profile-close-btn" class="modal-close-btn" aria-label="Close Profile">✕</button>
+          </div>
+
+          <!-- Profile Header with Current Avatar & Editable Name -->
+          <div class="profile-hero-card">
+            <div class="player-avatar-slot avatar-large" id="profile-hero-avatar"></div>
+            <div class="profile-hero-details">
+              <div class="profile-name-edit-wrap">
+                <input type="text" id="profile-name-input" class="profile-name-input" maxlength="16" placeholder="Your Name" value="Block Master" />
+                <button id="profile-name-save-btn" class="name-save-btn" title="Save Name">✓ Save</button>
+              </div>
+              <span class="profile-badge-title">Puzzle Champion</span>
+            </div>
+          </div>
+
+          <!-- Avatar Filter Tabs (All 14, Boys 8, Girls 6) -->
+          <div class="avatar-tabs-bar">
+            <button id="tab-avatar-all" class="avatar-tab active" data-filter="all">All (14)</button>
+            <button id="tab-avatar-boys" class="avatar-tab" data-filter="boy">Boys (8)</button>
+            <button id="tab-avatar-girls" class="avatar-tab" data-filter="girl">Girls (6)</button>
+          </div>
+
+          <!-- 14 Animated Character Avatars Grid -->
+          <div id="avatars-grid" class="avatars-grid">
+            <!-- Dynamically populated 8 boys and 6 girls animated SVG avatars -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 18. CAREER STATISTICS & RECORDS MODAL ================= -->
+      <div id="career-modal" class="modal-overlay hidden" data-testid="career-modal">
+        <div class="modal-card career-card">
+          <div class="settings-header">
+            <div class="shop-title-wrap">
+              <span class="shop-header-icon">📊</span>
+              <h2 class="settings-title">Career Records</h2>
+            </div>
+            <button id="career-close-btn" class="modal-close-btn" aria-label="Close Career Records">✕</button>
+          </div>
+
+          <div class="career-scroll-body">
+            <!-- Career Hero Card with Current PFP & Summary -->
+            <div class="career-hero-summary">
+              <div class="player-avatar-slot avatar-medium"></div>
+              <div class="career-hero-info">
+                <strong class="player-name-display career-name">Block Master</strong>
+                <span class="career-tagline">Lifetime Puzzle Mastery</span>
+              </div>
+            </div>
+
+            <!-- Detailed Career Statistics 12-Card Grid -->
+            <div class="career-stats-grid">
+              <div class="career-stat-card">
+                <span class="c-stat-icon">👑</span>
+                <span id="c-stat-best-score" class="c-stat-val">0</span>
+                <span class="c-stat-lbl">High Score</span>
+              </div>
+              <div class="career-stat-card">
+                <span class="c-stat-icon">🔥</span>
+                <span id="c-stat-highest-combo" class="c-stat-val">0</span>
+                <span class="c-stat-lbl">Highest Combo</span>
+              </div>
+              <div class="career-stat-card">
+                <span class="c-stat-icon">🎮</span>
+                <span id="c-stat-rounds" class="c-stat-val">0</span>
+                <span class="c-stat-lbl">Rounds Played</span>
+              </div>
+              <div class="career-stat-card">
+                <span class="c-stat-icon">🧱</span>
+                <span id="c-stat-blocks" class="c-stat-val">0</span>
+                <span class="c-stat-lbl">Blocks Placed</span>
+              </div>
+              <div class="career-stat-card">
+                <span class="c-stat-icon">💥</span>
+                <span id="c-stat-lines" class="c-stat-val">0</span>
+                <span class="c-stat-lbl">Lines Blasted</span>
+              </div>
+              <div class="career-stat-card">
+                <span class="c-stat-icon">⚡</span>
+                <span id="c-stat-multiline" class="c-stat-val">0</span>
+                <span class="c-stat-lbl">Multi-Clears</span>
+              </div>
+              <div class="career-stat-card">
+                <span class="c-stat-icon">🌟</span>
+                <span id="c-stat-allclear" class="c-stat-val">0</span>
+                <span class="c-stat-lbl">Perfect Clears</span>
+              </div>
+              <div class="career-stat-card">
+                <span class="c-stat-icon">🗺️</span>
+                <span id="c-stat-adventure" class="c-stat-val">1 / 1000</span>
+                <span class="c-stat-lbl">Adventure Level</span>
+              </div>
+              <div class="career-stat-card">
+                <span class="c-stat-icon">📅</span>
+                <span id="c-stat-daily" class="c-stat-val">0</span>
+                <span class="c-stat-lbl">Dailies Done</span>
+              </div>
+              <div class="career-stat-card">
+                <span class="c-stat-icon">🎁</span>
+                <span id="c-stat-chests" class="c-stat-val">0</span>
+                <span class="c-stat-lbl">Chests Opened</span>
+              </div>
+              <div class="career-stat-card">
+                <span class="c-stat-icon">✨</span>
+                <span id="c-stat-revives" class="c-stat-val">0</span>
+                <span class="c-stat-lbl">Revives Used</span>
+              </div>
+              <div class="career-stat-card highlight-coin-card">
+                <span class="c-stat-icon">🪙</span>
+                <span id="c-stat-coins" class="c-stat-val">250</span>
+                <span class="c-stat-lbl">Coins Earned</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

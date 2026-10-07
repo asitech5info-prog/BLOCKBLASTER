@@ -1,8 +1,14 @@
 import { SHAPE_DEFINITIONS, canFitAt, canFitAnywhere, generateThreePieces } from './shapes.js';
 import { sound } from './audio.js';
 import { fireVictoryCelebration } from './particles.js';
-import { adventure, ADVENTURE_SILHOUETTE_ROWS } from './adventure.js';
+import { adventure, ADVENTURE_SILHOUETTE_ROWS, MAX_ADVENTURE_LEVEL } from './adventure.js';
 import { medalManager, AWARDS_DEFINITIONS } from './medals.js';
+import { wallet } from './coins.js';
+import { skinManager, SKINS_CATALOG } from './skins.js';
+import { profileManager, AVATAR_DEFINITIONS } from './profile.js';
+import { haptics } from './haptics.js';
+import { dailyChallenge, CHEST_TIERS } from './daily.js';
+import { careerStats } from './career.js';
 
 export class BlockBlasterGame {
   constructor() {
@@ -113,6 +119,18 @@ export class BlockBlasterGame {
     this.adventureSilhouetteGrid = document.getElementById('adventure-silhouette-grid');
     this.mapPlayLevelBtn = document.getElementById('map-play-level-btn');
 
+    // New Features: Revive, Skin Shop, Daily Challenge, Profile, Career & Haptics
+    this.deathReviveBtn = document.getElementById('death-revive-btn');
+    this.skinShopModal = document.getElementById('skin-shop-modal');
+    this.dailyChallengeModal = document.getElementById('daily-challenge-modal');
+    this.chestOpenModal = document.getElementById('chest-open-modal');
+    this.profileModal = document.getElementById('profile-modal');
+    this.careerModal = document.getElementById('career-modal');
+    this.settingsHapticsBtn = document.getElementById('settings-haptics-btn');
+    this.hapticsIconWrap = document.getElementById('haptics-icon-wrap');
+    this.activeAvatarFilter = 'all';
+    this.activeChestChallengeId = null;
+
     // High-performance cell caches & ghost tracking
     this.boardCellEls = [];
     this.activeGhostCells = [];
@@ -121,10 +139,15 @@ export class BlockBlasterGame {
   init() {
     this.createBoardGrid();
     this.setupEventListeners();
+    this.setupNewFeatures();
     this.setupAdventureMap();
     this.setupMedalsScreen();
     this.updateHomeUI();
     this.applyTheme(this.themes[this.currentThemeIndex]);
+    skinManager.applySkinToBody();
+    profileManager.notify();
+    this.updateCoinsDisplay();
+    this.updateHapticsUI();
     this.startLoadingSequence();
 
     window.addEventListener('resize', () => {
@@ -524,6 +547,8 @@ export class BlockBlasterGame {
     if (floaterPos) {
       this.createScoreFloater(textOverride || `+${pts}`, floaterPos.x, floaterPos.y, isCombo);
     }
+
+    dailyChallenge.recordEvent('scoreSingle', this.score);
   }
 
   createScoreFloater(text, x, y, isCombo = false) {
@@ -547,6 +572,7 @@ export class BlockBlasterGame {
   // --- 5. Theme Switching on Perfect Clear ---
   applyTheme(themeName) {
     document.body.className = themeName;
+    skinManager.applySkinToBody();
   }
 
   switchNextTheme() {
@@ -565,7 +591,9 @@ export class BlockBlasterGame {
   handlePerfectClear() {
     this.addScore(1000, null, true, '🌟 ALL CLEAR! +1000');
     sound.playComboFanfare();
+    haptics.fanfare();
     medalManager.recordAllClear();
+    careerStats.recordAllClear();
     this.switchNextTheme();
   }
 
@@ -593,7 +621,10 @@ export class BlockBlasterGame {
     }
 
     sound.playDrop();
+    haptics.snapPiece();
     medalManager.recordPiecePlaced();
+    careerStats.recordBlockPlaced();
+    dailyChallenge.recordEvent('blocksPlaced', blockCount);
     this.renderBoard();
 
     // Score placement points
@@ -651,6 +682,13 @@ export class BlockBlasterGame {
       this.combo += 1;
       this.updateComboUI();
       medalManager.recordLinesCleared(totalLines);
+      careerStats.recordLinesCleared(totalLines);
+      dailyChallenge.recordEvent('linesCleared', totalLines);
+      dailyChallenge.recordEvent('comboChain', this.combo);
+      haptics.lineClear(totalLines);
+      if (this.combo > 1) {
+        haptics.combo(this.combo);
+      }
 
       sound.playClear(this.combo);
       if (this.combo >= 3) {
@@ -1194,7 +1232,7 @@ export class BlockBlasterGame {
       sound.playClick();
       this.levelWinModal.classList.add('hidden');
       const nextLvl = this.currentLevelNum + 1;
-      if (nextLvl <= 96) {
+      if (nextLvl <= 1000) {
         this.startAdventureLevel(nextLvl);
       } else {
         this.showScreen('screen-adventure-map');
@@ -1220,6 +1258,537 @@ export class BlockBlasterGame {
     window.addEventListener('pointermove', (e) => this.handleGlobalPointerMove(e), { passive: false });
     window.addEventListener('pointerup', (e) => this.handleGlobalPointerUp(e));
     window.addEventListener('pointercancel', (e) => this.handleGlobalPointerCancel(e));
+  }
+
+  // --- 10b. New Features: Skins, Daily Challenges, Chests, Profile, Career & Haptics ---
+  setupNewFeatures() {
+    // Skin Shop Open & Close
+    const btnSkinShop = document.getElementById('btn-skin-shop');
+    if (btnSkinShop) {
+      btnSkinShop.addEventListener('click', () => {
+        sound.playClick();
+        this.openSkinShop();
+      });
+    }
+
+    const homeCoinsPill = document.getElementById('home-coins-pill');
+    if (homeCoinsPill) {
+      homeCoinsPill.addEventListener('click', () => {
+        sound.playClick();
+        this.openSkinShop();
+      });
+    }
+
+    const skinShopClose = document.getElementById('skin-shop-close-btn');
+    if (skinShopClose) {
+      skinShopClose.addEventListener('click', () => {
+        sound.playClick();
+        this.closeSkinShop();
+      });
+    }
+
+    // Daily Challenge Open & Close
+    const btnDaily = document.getElementById('btn-daily-challenge');
+    if (btnDaily) {
+      btnDaily.addEventListener('click', () => {
+        sound.playClick();
+        this.openDailyChallenge();
+      });
+    }
+
+    const dailyClose = document.getElementById('daily-challenge-close-btn');
+    if (dailyClose) {
+      dailyClose.addEventListener('click', () => {
+        sound.playClick();
+        this.closeDailyChallenge();
+      });
+    }
+
+    // Career Stats Open & Close
+    const btnCareer = document.getElementById('btn-career-stats');
+    if (btnCareer) {
+      btnCareer.addEventListener('click', () => {
+        sound.playClick();
+        this.openCareerModal();
+      });
+    }
+
+    const careerClose = document.getElementById('career-close-btn');
+    if (careerClose) {
+      careerClose.addEventListener('click', () => {
+        sound.playClick();
+        this.closeCareerModal();
+      });
+    }
+
+    // Player Profile Open & Close
+    const homeProfilePill = document.getElementById('home-profile-pill');
+    if (homeProfilePill) {
+      homeProfilePill.addEventListener('click', () => {
+        sound.playClick();
+        this.openProfileModal();
+      });
+    }
+
+    const profileClose = document.getElementById('profile-close-btn');
+    if (profileClose) {
+      profileClose.addEventListener('click', () => {
+        sound.playClick();
+        this.closeProfileModal();
+      });
+    }
+
+    // Player Profile Name Save
+    const profileSaveBtn = document.getElementById('profile-name-save-btn');
+    const profileInput = document.getElementById('profile-name-input');
+    if (profileSaveBtn && profileInput) {
+      profileSaveBtn.addEventListener('click', () => {
+        sound.playClick();
+        if (profileManager.setName(profileInput.value)) {
+          profileSaveBtn.textContent = 'Saved! ✓';
+          setTimeout(() => {
+            if (profileSaveBtn) profileSaveBtn.textContent = '✓ Save';
+          }, 1500);
+        }
+      });
+      profileInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          profileSaveBtn.click();
+        }
+      });
+    }
+
+    // Avatar Filter Tabs
+    ['all', 'boy', 'girl'].forEach(filter => {
+      const tabId = filter === 'all' ? 'tab-avatar-all' : filter === 'boy' ? 'tab-avatar-boys' : 'tab-avatar-girls';
+      const tab = document.getElementById(tabId);
+      if (tab) {
+        tab.addEventListener('click', () => {
+          sound.playClick();
+          document.querySelectorAll('.avatar-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          this.activeAvatarFilter = filter;
+          this.renderProfileModal();
+        });
+      }
+    });
+
+    // Mystery Chest Action
+    const chestActionBtn = document.getElementById('chest-action-btn');
+    if (chestActionBtn) {
+      chestActionBtn.addEventListener('click', () => {
+        this.triggerChestOpen();
+      });
+    }
+
+    // Game Over Revive Option
+    if (this.deathReviveBtn) {
+      this.deathReviveBtn.addEventListener('click', () => {
+        this.reviveGame();
+      });
+    }
+
+    // Haptics Toggle
+    if (this.settingsHapticsBtn) {
+      this.settingsHapticsBtn.addEventListener('click', () => {
+        const current = haptics.isHapticsEnabled();
+        haptics.setHapticsEnabled(!current);
+        this.updateHapticsUI();
+        sound.playClick();
+      });
+    }
+
+    // Haptics Intensity Control
+    const intensityBtns = document.querySelectorAll('#haptic-intensity-control .seg-btn');
+    intensityBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        intensityBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        haptics.setIntensity(btn.dataset.val);
+        sound.playClick();
+      });
+    });
+
+    // Touch Drag Offset Control
+    const offsetBtns = document.querySelectorAll('#touch-offset-control .seg-btn');
+    offsetBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        offsetBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        haptics.setTouchOffsetMode(btn.dataset.val);
+        sound.playClick();
+      });
+    });
+  }
+
+  updateCoinsDisplay() {
+    const bal = wallet.getBalance();
+    document.querySelectorAll('.bb-coin-amount').forEach(el => {
+      el.textContent = bal.toLocaleString();
+    });
+  }
+
+  updateHapticsUI() {
+    const enabled = haptics.isHapticsEnabled();
+    if (this.settingsHapticsBtn) {
+      this.settingsHapticsBtn.classList.toggle('muted', !enabled);
+    }
+
+    const currentIntensity = haptics.getIntensity();
+    document.querySelectorAll('#haptic-intensity-control .seg-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.val === currentIntensity);
+    });
+
+    const currentOffset = haptics.getTouchOffsetMode();
+    document.querySelectorAll('#touch-offset-control .seg-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.val === currentOffset);
+    });
+  }
+
+  // --- Revive Logic ---
+  reviveGame() {
+    const cost = 50;
+    if (wallet.getBalance() < cost) {
+      // First revive or low coins grace: give revive
+      wallet.addCoins(cost, 'Grace Revive');
+    }
+
+    if (wallet.spendCoins(cost, 'Revive Game')) {
+      if (this.countdownTimer) {
+        clearInterval(this.countdownTimer);
+        this.countdownTimer = null;
+      }
+
+      careerStats.recordRevive();
+
+      // Clear center 4x4 area (rows 2-5, cols 2-5)
+      for (let r = 2; r <= 5; r++) {
+        for (let c = 2; c <= 5; c++) {
+          this.board[r][c] = null;
+        }
+      }
+
+      this.isGameOver = false;
+      this.renderBoard();
+      this.spawnNewPieces();
+
+      haptics.fanfare();
+      if (typeof sound?.playMedalCelebration === 'function') {
+        sound.playMedalCelebration();
+      } else if (typeof sound?.playComboFanfare === 'function') {
+        sound.playComboFanfare();
+      }
+      fireVictoryCelebration();
+
+      this.showScreen('screen-gameplay');
+    }
+  }
+
+  // --- Skin Shop ---
+  openSkinShop() {
+    this.renderSkinShop();
+    if (this.skinShopModal) this.skinShopModal.classList.remove('hidden');
+  }
+
+  closeSkinShop() {
+    if (this.skinShopModal) this.skinShopModal.classList.add('hidden');
+  }
+
+  renderSkinShop() {
+    const grid = document.getElementById('skins-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const skins = skinManager.getAllSkins();
+    const equippedId = skinManager.getEquippedSkin();
+
+    skins.forEach(skin => {
+      const card = document.createElement('div');
+      card.className = `skin-card ${skin.id === equippedId ? 'equipped' : ''} ${skinManager.isSkinUnlocked(skin.id) ? 'unlocked' : 'locked'}`;
+
+      const header = document.createElement('div');
+      header.className = 'skin-card-header';
+      header.innerHTML = `
+        <span class="skin-badge-tag">${skin.tag}</span>
+        <span class="skin-icon">${skin.icon}</span>
+      `;
+
+      // 4-cell block preview in skin style
+      const previewGrid = document.createElement('div');
+      previewGrid.className = `skin-preview-grid ${skin.cssClass}`;
+      for (let i = 0; i < 4; i++) {
+        const previewCell = document.createElement('div');
+        previewCell.className = `cell filled skin-preview-cell preview-${i + 1}`;
+        previewGrid.appendChild(previewCell);
+      }
+
+      const info = document.createElement('div');
+      info.className = 'skin-info';
+      info.innerHTML = `
+        <strong class="skin-name">${skin.name}</strong>
+        <p class="skin-desc">${skin.desc}</p>
+      `;
+
+      const actions = document.createElement('div');
+      actions.className = 'skin-actions';
+
+      const isUnlocked = skinManager.isSkinUnlocked(skin.id);
+      const isEquipped = skin.id === equippedId;
+
+      if (isEquipped) {
+        actions.innerHTML = `<button class="skin-btn btn-equipped" disabled>Equipped ✓</button>`;
+      } else if (isUnlocked) {
+        const btn = document.createElement('button');
+        btn.className = 'skin-btn btn-equip';
+        btn.textContent = 'Equip';
+        btn.addEventListener('click', () => {
+          skinManager.equipSkin(skin.id);
+          this.renderSkinShop();
+          this.renderBoard();
+          this.renderTray();
+        });
+        actions.appendChild(btn);
+      } else {
+        const btn = document.createElement('button');
+        btn.className = 'skin-btn btn-buy';
+        btn.innerHTML = `<span>Buy</span> <span>🪙 ${skin.price}</span>`;
+        btn.addEventListener('click', () => {
+          const res = skinManager.buySkin(skin.id);
+          if (res.success) {
+            this.renderSkinShop();
+            this.renderBoard();
+            this.renderTray();
+          } else {
+            alert(res.reason || 'Not enough BB Coins!');
+          }
+        });
+        actions.appendChild(btn);
+      }
+
+      card.appendChild(header);
+      card.appendChild(previewGrid);
+      card.appendChild(info);
+      card.appendChild(actions);
+      grid.appendChild(card);
+    });
+  }
+
+  // --- Daily Challenges ---
+  openDailyChallenge() {
+    this.renderDailyChallenge();
+    if (this.dailyChallengeModal) this.dailyChallengeModal.classList.remove('hidden');
+  }
+
+  closeDailyChallenge() {
+    if (this.dailyChallengeModal) this.dailyChallengeModal.classList.add('hidden');
+  }
+
+  renderDailyChallenge() {
+    const list = document.getElementById('daily-challenges-list');
+    if (!list) return;
+    list.innerHTML = '';
+
+    const dateText = document.getElementById('daily-current-date-text');
+    if (dateText) dateText.textContent = `Daily Missions (${dailyChallenge.todayKey})`;
+
+    const challenges = dailyChallenge.getChallenges();
+
+    challenges.forEach(c => {
+      const card = document.createElement('div');
+      card.className = `daily-item-card tier-${c.chest.tier} ${c.isCompleted ? 'completed' : ''} ${c.isClaimed ? 'claimed' : ''}`;
+
+      const pct = Math.min(100, Math.round((c.current / c.target) * 100));
+
+      card.innerHTML = `
+        <div class="daily-item-left">
+          <div class="daily-chest-icon-badge" style="background:${c.chest.glowColor}">
+            <span class="daily-gem-emoji">${c.chest.gemEmoji}</span>
+            <span class="daily-chest-icon">${c.chest.icon}</span>
+          </div>
+          <div class="daily-item-info">
+            <div class="daily-title-row">
+              <strong class="daily-title">${c.title}</strong>
+              <span class="daily-complexity-badge tier-${c.chest.tier}">${c.complexity}</span>
+            </div>
+            <p class="daily-desc">${c.desc}</p>
+            <div class="daily-prog-track">
+              <div class="daily-prog-fill" style="width: ${pct}%"></div>
+              <span class="daily-prog-text">${c.current} / ${c.target}</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const rightWrap = document.createElement('div');
+      rightWrap.className = 'daily-item-right';
+
+      if (c.isClaimed) {
+        rightWrap.innerHTML = `<button class="daily-claim-btn btn-claimed" disabled>Claimed ✓</button>`;
+      } else if (c.isCompleted) {
+        const btn = document.createElement('button');
+        btn.className = 'daily-claim-btn btn-claim-ready';
+        btn.innerHTML = `<span>Claim</span> <span class="chest-bounce">${c.chest.icon}</span>`;
+        btn.addEventListener('click', () => {
+          this.openChestModal(c.id);
+        });
+        rightWrap.appendChild(btn);
+      } else {
+        rightWrap.innerHTML = `
+          <div class="daily-reward-preview">
+            <span class="reward-coin-tag">🪙 ${c.chest.coins}</span>
+          </div>
+        `;
+      }
+
+      card.appendChild(rightWrap);
+      list.appendChild(card);
+    });
+  }
+
+  // --- Mystery Chest Opening ---
+  openChestModal(challengeId) {
+    this.activeChestChallengeId = challengeId;
+    const challenge = dailyChallenge.challenges.find(c => c.id === challengeId);
+    if (!challenge) return;
+
+    const chestTitle = document.getElementById('chest-title-text');
+    const chestDesc = document.getElementById('chest-desc-text');
+    const chestBoxIcon = document.getElementById('chest-box-icon');
+    const chestActionBtn = document.getElementById('chest-action-btn');
+    const rewardDisplay = document.getElementById('chest-reward-display');
+
+    if (chestTitle) chestTitle.textContent = `${challenge.complexity} ${challenge.chest.name}!`;
+    if (chestDesc) chestDesc.textContent = 'Tap to burst open and claim your BB Coins!';
+    if (chestBoxIcon) {
+      chestBoxIcon.textContent = challenge.chest.icon;
+      chestBoxIcon.className = 'chest-box-icon chest-shaking';
+    }
+    if (rewardDisplay) rewardDisplay.classList.add('hidden');
+    if (chestActionBtn) {
+      chestActionBtn.textContent = 'Open Chest!';
+      chestActionBtn.disabled = false;
+    }
+
+    if (this.chestOpenModal) this.chestOpenModal.classList.remove('hidden');
+  }
+
+  closeChestModal() {
+    if (this.chestOpenModal) this.chestOpenModal.classList.add('hidden');
+    this.activeChestChallengeId = null;
+    this.renderDailyChallenge();
+  }
+
+  triggerChestOpen() {
+    if (!this.activeChestChallengeId) return;
+
+    const chestBoxIcon = document.getElementById('chest-box-icon');
+    const chestActionBtn = document.getElementById('chest-action-btn');
+    const rewardDisplay = document.getElementById('chest-reward-display');
+    const rewardAmount = document.getElementById('chest-reward-amount');
+
+    const result = dailyChallenge.claimChest(this.activeChestChallengeId);
+    if (!result.success) return;
+
+    if (chestBoxIcon) {
+      chestBoxIcon.classList.remove('chest-shaking');
+      chestBoxIcon.classList.add('chest-bursting');
+    }
+
+    if (rewardAmount) rewardAmount.textContent = `+${result.coins}`;
+    if (rewardDisplay) rewardDisplay.classList.remove('hidden');
+
+    if (chestActionBtn) {
+      chestActionBtn.textContent = 'Awesome! Collect Coins';
+      chestActionBtn.onclick = () => {
+        chestActionBtn.onclick = null;
+        this.closeChestModal();
+      };
+    }
+  }
+
+  // --- Player Profile ---
+  openProfileModal() {
+    const input = document.getElementById('profile-name-input');
+    if (input) input.value = profileManager.getName();
+    this.renderProfileModal();
+    if (this.profileModal) this.profileModal.classList.remove('hidden');
+  }
+
+  closeProfileModal() {
+    if (this.profileModal) this.profileModal.classList.add('hidden');
+  }
+
+  renderProfileModal() {
+    const grid = document.getElementById('avatars-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const heroSlot = document.getElementById('profile-hero-avatar');
+    if (heroSlot) heroSlot.innerHTML = profileManager.getCurrentAvatar().svg;
+
+    const avatars = profileManager.getAvatars(this.activeAvatarFilter);
+    const currentPfpId = profileManager.getPfp();
+
+    avatars.forEach(av => {
+      const tile = document.createElement('div');
+      tile.className = `avatar-choice-tile ${av.id === currentPfpId ? 'selected' : ''}`;
+      tile.title = `${av.name} (${av.gender})`;
+
+      const svgWrap = document.createElement('div');
+      svgWrap.className = 'avatar-svg-wrap';
+      svgWrap.innerHTML = av.svg;
+
+      const nameLabel = document.createElement('span');
+      nameLabel.className = 'avatar-choice-name';
+      nameLabel.textContent = av.name;
+
+      const tagLabel = document.createElement('span');
+      tagLabel.className = `avatar-gender-tag tag-${av.gender}`;
+      tagLabel.textContent = av.gender === 'boy' ? 'Boy' : 'Girl';
+
+      tile.appendChild(svgWrap);
+      tile.appendChild(nameLabel);
+      tile.appendChild(tagLabel);
+
+      tile.addEventListener('click', () => {
+        sound.playClick();
+        profileManager.setPfp(av.id);
+        this.renderProfileModal();
+      });
+
+      grid.appendChild(tile);
+    });
+  }
+
+  // --- Career Stats ---
+  openCareerModal() {
+    this.renderCareerModal();
+    if (this.careerModal) this.careerModal.classList.remove('hidden');
+  }
+
+  closeCareerModal() {
+    if (this.careerModal) this.careerModal.classList.add('hidden');
+  }
+
+  renderCareerModal() {
+    const stats = careerStats.getStats();
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = typeof val === 'number' ? val.toLocaleString() : val;
+    };
+
+    setVal('c-stat-best-score', stats.bestScore);
+    setVal('c-stat-highest-combo', stats.highestCombo);
+    setVal('c-stat-rounds', stats.rounds);
+    setVal('c-stat-blocks', stats.blocksPlaced);
+    setVal('c-stat-lines', stats.linesCleared);
+    setVal('c-stat-multiline', stats.multiClears);
+    setVal('c-stat-allclear', stats.allClears);
+    setVal('c-stat-adventure', `${stats.adventureLevel} / 1000`);
+    setVal('c-stat-daily', stats.dailyCompleted);
+    setVal('c-stat-chests', stats.chestsOpened);
+    setVal('c-stat-revives', stats.revivesUsed);
+    setVal('c-stat-coins', stats.totalCoinsEarned);
   }
 
   // --- 11. Interaction & Smooth 60fps Drag Handling ---
@@ -1278,6 +1847,7 @@ export class BlockBlasterGame {
     };
 
     sound.playPickup();
+    haptics.tapPiece();
   }
 
   handleGlobalPointerMove(e) {
@@ -1297,8 +1867,8 @@ export class BlockBlasterGame {
 
     if (drag.isDragging) {
       e.preventDefault();
-      // On touch devices, lift piece above finger so player sees exact drop position!
-      const touchOffsetY = drag.isTouch ? -70 : 0;
+      // Use user customizable touch drag offset (above finger vs direct)
+      const touchOffsetY = drag.isTouch ? haptics.getTouchOffsetY() : 0;
       const posX = e.clientX;
       const posY = e.clientY + touchOffsetY;
 
@@ -1320,7 +1890,7 @@ export class BlockBlasterGame {
     } catch (err) {}
 
     if (drag.isDragging) {
-      const touchOffsetY = drag.isTouch ? -70 : 0;
+      const touchOffsetY = drag.isTouch ? haptics.getTouchOffsetY() : 0;
       const posX = e.clientX;
       const posY = e.clientY + touchOffsetY;
 
